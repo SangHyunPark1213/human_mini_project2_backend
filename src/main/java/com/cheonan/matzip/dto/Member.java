@@ -1,13 +1,18 @@
 package com.cheonan.matzip.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Getter
-@AllArgsConstructor
-public class MemberResponse {
+@Setter
+public class Member {
+
     private Long id;
     private String email;
+    private String password;
     private String nickname;
     private String role;
+    private LocalDateTime createdAt;
 }
