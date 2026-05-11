@@ -5,6 +5,7 @@ import com.cheonan.matzip.dto.request.MemberJoinRequest;
 import com.cheonan.matzip.dto.request.MemberLoginRequest;
 import com.cheonan.matzip.dto.response.MemberResponse;
 import com.cheonan.matzip.service.MemberService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,10 +24,11 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<MemberResponse> login(@RequestBody MemberLoginRequest request) {
+    public ResponseEntity<MemberResponse> login(
+            @RequestBody MemberLoginRequest request,
+            HttpServletRequest httpRequest) {           // ← 추가
 
-        MemberResponse response = memberService.login(request);
-
+        MemberResponse response = memberService.login(request, httpRequest);
         return ResponseEntity.ok(response);
     }
 }
