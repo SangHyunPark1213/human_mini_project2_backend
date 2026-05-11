@@ -1,9 +1,9 @@
 package com.cheonan.matzip.controller;
 
 
-import com.cheonan.matzip.dto.MemberJoinRequest;
-import com.cheonan.matzip.dto.MemberLoginRequest;
-import com.cheonan.matzip.dto.MemberResponse;
+import com.cheonan.matzip.dto.request.MemberJoinRequest;
+import com.cheonan.matzip.dto.request.MemberLoginRequest;
+import com.cheonan.matzip.dto.response.MemberResponse;
 import com.cheonan.matzip.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
