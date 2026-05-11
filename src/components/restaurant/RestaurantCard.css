@@ -8,6 +8,7 @@
   margin: 0 15px;
   border: none;
   padding: 0;
+  cursor: pointer;
 }
 
 .restaurant-card:hover {
