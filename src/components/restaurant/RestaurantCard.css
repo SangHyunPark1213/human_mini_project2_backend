@@ -4,6 +4,10 @@
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   transition: 0.25s ease;
+  width: 400px;
+  margin: 0 15px;
+  border: none;
+  padding: 0;
 }
 
 .restaurant-card:hover {
@@ -23,16 +27,20 @@
   object-fit: cover;
 }
 
-.heart-btn {
+.restaurant-img-wrap .average_rating {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  border: none;
-  background: white;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
+  z-index: 10;
+  left: 20px;
+  bottom: 20px;
+  background-color: white;
+  padding: 4px 12px 4px 9px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.average_rating svg {
+  color: #FFC857;
 }
 
 .restaurant-content {
@@ -40,39 +48,46 @@
 }
 
 .category-tag {
-  display: inline-block;
+  display: flex;
   background: #fff3ec;
   color: #ff6b35;
   padding: 6px 12px;
   border-radius: 24px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
+  margin: 15px 0;
+  width: fit-content;
 }
 
 .restaurant-content h3 {
   margin: 12px 0 8px;
-  font-size: 20px;
+  font-size: 19px;
   color: #2d3436;
+  display: flex;
 }
 
 .location {
   color: #636e72;
   font-size: 13px;
+  display: flex;
+  gap: 5px;
+  margin: 15px 0;
 }
 
-.desc {
+.location svg {
+  margin-top: 1px;
+}
+
+.review_count {
+  color: #7f8d92;
+  display: flex;
+  margin: 13px 0 0 0;
+  font-size: 11px;
+}
+
+.popular_menu {
+  display: flex;
   color: #636e72;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.detail-btn {
-  width: 100%;
-  margin-top: 12px;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background: #ff6b35;
-  color: white;
-  cursor: pointer;
+  gap: 5px;
+  font-size: 13px;
 }
