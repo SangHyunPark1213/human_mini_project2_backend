@@ -3,13 +3,21 @@
   border-radius: 20px;
   padding: 20px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin: 9px 15px;
 }
 
 .review-header {
   display: flex;
-  align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 5px;
+}
+
+.review-header .nickname {
+  display: flex;
+  color: #2d3436;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: "Pretendard";
 }
 
 .review-header img {
@@ -19,15 +27,25 @@
   object-fit: cover;
 }
 
-.review-header p {
-  margin: 4px 0 0;
-  color: #636e72;
-  font-size: 12px;
+.rating {
+  display: flex;
+  gap: 10px;
+}
+
+.review-header .rating p {
+  color: #98a9af;
+  font-size: 14px;
+  margin-bottom: 2.7px;
+  font-weight: 500;
 }
 
 .review-text {
   color: #2d3436;
   line-height: 1.6;
+  display: flex;
+  font-size: 15px;
+  text-align: left;
+  letter-spacing: -1px;
 }
 
 .review-photos {
@@ -37,8 +55,8 @@
 }
 
 .review-photos img {
-  width: 88px;
-  height: 88px;
+  width: 120px;
+  height: 120px;
   border-radius: 12px;
   object-fit: cover;
 }
