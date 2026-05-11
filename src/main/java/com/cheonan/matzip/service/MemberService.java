@@ -2,9 +2,9 @@ package com.cheonan.matzip.service;
 
 import com.cheonan.matzip.dao.MemberDao;
 import com.cheonan.matzip.dto.Member;
-import com.cheonan.matzip.dto.MemberJoinRequest;
-import com.cheonan.matzip.dto.MemberLoginRequest;
-import com.cheonan.matzip.dto.MemberResponse;
+import com.cheonan.matzip.dto.request.MemberJoinRequest;
+import com.cheonan.matzip.dto.request.MemberLoginRequest;
+import com.cheonan.matzip.dto.response.MemberResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

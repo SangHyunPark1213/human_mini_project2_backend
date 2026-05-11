@@ -1,11 +1,11 @@
 package com.cheonan.matzip.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
-public class Restaurant {
+@AllArgsConstructor
+public class RestaurantResponse {
 
     private Long id;
     private String name;
