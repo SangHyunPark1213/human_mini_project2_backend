@@ -1,34 +1,207 @@
 .header {
   width: 100%;
   background: white;
-  border-bottom: 1px solid #dfe6e9;
+  border-bottom: 1px solid #e8e8e8;
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
 .header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
   height: 72px;
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 0 20px;
+  gap: 20px;
+  padding: 0 32px;
 }
 
-.logo {
-  color: #ff6b35;
-  font-size: 24px;
-  font-weight: 800;
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.logo-icons {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.logo-text-wrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 900;
+  color: #1a1a1a;
+  letter-spacing: -0.5px;
   white-space: nowrap;
 }
 
-.header-search {
+/* ── 검색바 ── */
+.search-bar {
   flex: 1;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 50px;
+  padding: 6px 6px 6px 18px;
+  gap: 0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  min-width: 0;
 }
 
-.header nav {
+.search-bar:focus-within {
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.search-left {
   display: flex;
+  align-items: center;
   gap: 8px;
+  flex: 0 0 auto;
+  width: 160px;
+}
+
+.search-divider {
+  width: 1px;
+  height: 22px;
+  background: #e0e0e0;
+  margin: 0 14px;
+  flex-shrink: 0;
+}
+
+.search-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #333;
+  background: transparent;
+  width: 100%;
+}
+
+.search-input::placeholder {
+  color: #aaa;
+}
+
+.search-btn {
+  background: #ff6b35;
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.search-btn:hover {
+  background: #e85c27;
+  transform: scale(1.05);
+}
+
+/* ── 네비 ── */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-login {
+  background: transparent;
+  border: none;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btn-login:hover {
+  background: #f5f5f5;
+}
+
+.btn-signup {
+  background: #ff6b35;
+  border: none;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 9px 16px;
+  border-radius: 20px;
+  transition: background 0.15s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.btn-signup:hover {
+  background: #e85c27;
+  transform: translateY(-1px);
+}
+
+.btn-mypage {
+  background: transparent;
+  border: 1.5px solid #ff6b35;
+  color: #ff6b35;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 7px 16px;
+  border-radius: 20px;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.btn-mypage:hover {
+  background: #ff6b35;
+  color: white;
+}
+
+.user-greeting {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  padding: 0 2px;
+  white-space: nowrap;
+}
+
+.btn-logout {
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.btn-logout:hover {
+  background: #f5f5f5;
+  color: #e84c1e;
 }
