@@ -1,7 +1,7 @@
 package com.cheonan.matzip.dao;
 
 import com.cheonan.matzip.dto.Member;
-import com.cheonan.matzip.dto.request.MemberJoinRequest;
+import com.cheonan.matzip.dto.MemberJoinRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;

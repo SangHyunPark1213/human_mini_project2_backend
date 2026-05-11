@@ -1,4 +1,4 @@
-package com.cheonan.matzip.dto.response;
+package com.cheonan.matzip.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

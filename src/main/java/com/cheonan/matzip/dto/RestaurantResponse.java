@@ -1,4 +1,4 @@
 package com.cheonan.matzip.dto;
 
-public class Restaurant {
+public class RestaurantResponse {
 }
