@@ -2,8 +2,8 @@ package com.cheonan.matzip.service;
 
 import com.cheonan.matzip.dao.RestaurantDao;
 import com.cheonan.matzip.dto.Restaurant;
-import com.cheonan.matzip.dto.RestaurantCreateRequest;
-import com.cheonan.matzip.dto.RestaurantResponse;
+import com.cheonan.matzip.dto.request.RestaurantCreateRequest;
+import com.cheonan.matzip.dto.response.RestaurantResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

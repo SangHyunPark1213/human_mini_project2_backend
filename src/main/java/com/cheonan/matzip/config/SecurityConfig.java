@@ -4,6 +4,7 @@ import com.cheonan.matzip.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -40,9 +41,21 @@ public class SecurityConfig {
 
                 // ③ 경로별 접근 제어
                 .authorizeHttpRequests(auth -> auth
+                        // 회원 관련 (누구나 가능)
                         .requestMatchers("/api/members/join", "/api/members/login").permitAll()
+
+                        // 맛집 조회 (누구나 가능)
+                        .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
+
+                        // 맛집 등록/수정/삭제 (ADMIN만 가능)
+                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasRole("ADMIN")
+
+                        // Admin 페이지
                         .requestMatchers("/admin/login").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")  // ADMIN만 접근
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
                         .anyRequest().permitAll()
                 )
 

@@ -1,7 +1,7 @@
 package com.cheonan.matzip.controller;
 
-import com.cheonan.matzip.dto.RestaurantCreateRequest;
-import com.cheonan.matzip.dto.RestaurantResponse;
+import com.cheonan.matzip.dto.request.RestaurantCreateRequest;
+import com.cheonan.matzip.dto.response.RestaurantResponse;
 import com.cheonan.matzip.service.RestaurantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
