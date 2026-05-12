@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         Member member = memberDao.findByEmail(email)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("이메일 또는 비밀번호가 일치하지 않습니다")
+                        new UsernameNotFoundException("없는 이메일 정보입니다.")
                 );
 
         // Spring Security가 인식하는 권한 형식: "ROLE_USER", "ROLE_ADMIN"
