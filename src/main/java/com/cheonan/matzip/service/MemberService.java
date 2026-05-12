@@ -25,6 +25,11 @@ public class MemberService {
     private final AuthenticationManager authenticationManager;
 
     public void join(MemberJoinRequest request) {
+
+        if (memberDao.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("이미 사용 중인 이메일입니다.");
+        }
+
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         request.setPassword(encodedPassword);
         memberDao.join(request);

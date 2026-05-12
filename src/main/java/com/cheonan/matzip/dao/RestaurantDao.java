@@ -1,7 +1,7 @@
 package com.cheonan.matzip.dao;
 
 import com.cheonan.matzip.dto.Restaurant;
-import com.cheonan.matzip.dto.RestaurantCreateRequest;
+import com.cheonan.matzip.dto.request.RestaurantCreateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;

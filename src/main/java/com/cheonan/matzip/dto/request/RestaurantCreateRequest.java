@@ -1,4 +1,4 @@
-package com.cheonan.matzip.dto;
+package com.cheonan.matzip.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
