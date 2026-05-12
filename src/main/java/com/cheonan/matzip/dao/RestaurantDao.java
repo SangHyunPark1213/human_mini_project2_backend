@@ -44,14 +44,16 @@ public class RestaurantDao {
         return id;
     }
 
-    public List<Restaurant> findAll() {
+    public List<Restaurant> findAll(String category) {
+
         String sql = """
-                SELECT id, name, address, phone, category,
-                       latitude, longitude, average_rating, review_count,
-                       thumbnail, popular_menu
-                FROM restaurant
-                ORDER BY id DESC
-                """;
+            SELECT id, name, address, phone, category,
+                   latitude, longitude, average_rating, review_count,
+                   thumbnail, popular_menu
+            FROM restaurant
+            WHERE (? IS NULL OR category = ?)
+            ORDER BY id DESC
+            """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Restaurant restaurant = new Restaurant();
@@ -67,7 +69,7 @@ public class RestaurantDao {
             restaurant.setThumbnail(rs.getString("thumbnail"));
             restaurant.setPopularMenu(rs.getString("popular_menu"));
             return restaurant;
-        });
+        }, category, category);
     }
 
     public Optional<Restaurant> findById(Long id) {
@@ -97,5 +99,33 @@ public class RestaurantDao {
             }
             return Optional.empty();
         }, id);
+    }
+    // ── 수정 ────────────────────────────────────────────
+    public void update(Long id, RestaurantCreateRequest request) {
+        String sql = """
+            UPDATE restaurant
+            SET name = ?, address = ?, phone = ?,
+                category = ?, latitude = ?, longitude = ?,
+                thumbnail = ?, popular_menu = ?
+            WHERE id = ?
+            """;
+        jdbcTemplate.update(sql,
+                request.getName(),
+                request.getAddress(),
+                request.getPhone(),
+                request.getCategory(),
+                request.getLatitude(),
+                request.getLongitude(),
+                request.getThumbnail(),
+                request.getPopularMenu(),
+                id
+        );
+    }
+
+    // ── 삭제 ────────────────────────────────────────────
+    public void delete(Long id) {
+        jdbcTemplate.update(
+                "DELETE FROM restaurant WHERE id = ?", id
+        );
     }
 }
