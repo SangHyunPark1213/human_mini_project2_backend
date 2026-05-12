@@ -1,12 +1,11 @@
-package com.cheonan.matzip.dto;
+package com.cheonan.matzip.dto.response;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@Builder
+@AllArgsConstructor
 public class MemberResponse {
-
     private Long id;
     private String email;
     private String nickname;
