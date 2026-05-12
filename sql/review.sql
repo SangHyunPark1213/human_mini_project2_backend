@@ -45,12 +45,12 @@ CREATE TABLE REVIEW (
     CONSTRAINT UK_REVIEW_MEMBER_RESTAURANT UNIQUE (restaurant_id, member_id)
 );
 
---2. REVIEW_IMAGE (리뷰 첨부 사진)
+--2. REVIEW_FOOD_IMAGE (리뷰 첨부 사진)
 --하나의 리뷰에 최대 3장의 사진을 담기 위해 별도로 분리한 테이블입니다. (1:N 관계)
 CREATE TABLE REVIEW_IMAGE (
     id NUMBER PRIMARY KEY,                       --이미지 고유 번호 (PK)
     review_id NUMBER NOT NULL,                  --어떤 리뷰에 속한 사진인지 (FK)
-    image_url VARCHAR2(500) NOT NULL,           --Firebase에 저장된 이미지 실제 주소
+    food_image_url VARCHAR2(500) NOT NULL,           --Firebase에 저장된 이미지 실제 주소
 
     --부모 리뷰가 삭제되면 이미지 정보도 자동으로 삭제되도록 설정
     CONSTRAINT FK_REVIEW_IMAGE_REVIEW FOREIGN KEY (review_id)

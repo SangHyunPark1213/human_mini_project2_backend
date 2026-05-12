@@ -15,7 +15,7 @@ public class ReviewRequest {
     private String revisit;
     private String receiptUrl;
 
-    private List<String> imageUrls;
+    private List<String> foodImageUrls;
     private List<String> situations;
 }
 

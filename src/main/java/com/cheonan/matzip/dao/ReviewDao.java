@@ -30,9 +30,9 @@ public class ReviewDao {
 
     }
 
-    //리뷰 이미지 저장 (최대 3개)
+    //음식사진 저장 (최대 3개)
     public void insertReviewImage(Long reviewId, String imageUrl) {
-        String sql = "INSERT INTO REVIEW_IMAGE(id, review_id, image_url)" +
+        String sql = "INSERT INTO REVIEW_FOOD_IMAGE(id, review_id, food_image_url)" +
                     "VALUES (REVIEW_IMAGE_SEQ.NEXTVAL, ?, ?)";
         jdbcTemplate.update(sql, reviewId, imageUrl);
     }

@@ -17,9 +17,12 @@ public class ReviewService {
         //리뷰 본문 저장, 생성된 리뷰 번호 받아오기
         Long reviewId = reviewDao.insertReview(req);
 
-        //사진이 있으면 리뷰번호와 연결해서 저장(반복문)
-        if (req.getImageUrls() !=null) {
-            for (String url : req.getImageUrls()) {
+        //음식 사진 저장 (최대 3장)
+        if (req.getFoodImageUrls() != null) {
+            //최대 3장까지만 저장하도록 제한 (방어 코드)
+            int limit = Math.min(req.getFoodImageUrls().size(), 3);
+            for (int i = 0; i < limit; i++) {
+                String url = req.getFoodImageUrls().get(i);
                 reviewDao.insertReviewImage(reviewId, url);
             }
         }

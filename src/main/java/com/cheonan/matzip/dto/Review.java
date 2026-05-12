@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,4 +22,8 @@ public class Review {
     private String receiptUrl;  //영수증사진
     private int helpfulCount;  //'도움돼요' 총 개수
     private int likeCount;  //'좋아요' 총 개수
+
+    //추가: 음식 사진 리스트 (REVIEW_IMAGE 테이블과 연결될 데이터)
+    //DB 조회 시 이 리스트에 음식 사진 URL들을 담아서 보냄
+    private List<String> foodImageUrls;
 }
