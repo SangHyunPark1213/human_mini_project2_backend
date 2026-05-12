@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import "./App.css";
 import Header from "./components/layout/Header";
 import RestaurantCard from "./components/restaurant/RestaurantCard";
 import { LoginModal, SignupModal } from "./components/common/AuthModal";
 import RestaurantDetailModal from "./components/restaurant/RestaurantDetailModal";
 
-const restaurants = [
+/* ─── 샘플 데이터 (백엔드 Restaurant API 연동 시 교체 예정) ─── */
+const ALL_RESTAURANTS = [
   {
     id: 1,
     thumbnail: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600",
@@ -41,19 +42,80 @@ const restaurants = [
   },
 ];
 
-function App() {
-  const [modal, setModal] = useState(null); // "login" | "signup" | null
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-  const [user, setUser] = useState(null);
+/* ─── 마이페이지 모달 (간단 인라인 구현) ─── */
+const MyPageModal = ({ user, onClose }) => (
+  <div
+    className="mypage-backdrop"
+    onClick={(e) => e.target === e.currentTarget && onClose()}
+  >
+    <div className="mypage-box">
+      <button className="modal-close-btn" onClick={onClose} aria-label="닫기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <div className="mypage-avatar">
+        {user.nickname?.charAt(0).toUpperCase()}
+      </div>
+      <h2 className="mypage-name">{user.nickname}</h2>
+      <p className="mypage-email">{user.email}</p>
+      <div className="mypage-info-row">
+        <span className="mypage-label">등급</span>
+        <span className="mypage-value mypage-role">{user.role === "ROLE_ADMIN" ? "관리자" : "일반 회원"}</span>
+      </div>
+      <div className="mypage-info-row">
+        <span className="mypage-label">회원번호</span>
+        <span className="mypage-value">#{user.id}</span>
+      </div>
+      <button className="mypage-close-btn" onClick={onClose}>닫기</button>
+    </div>
+  </div>
+);
 
+/* ─── App ─── */
+function App() {
+  const [modal, setModal] = useState(null); // "login" | "signup" | "mypage" | null
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [user, setUser] = useState(null); // MemberResponse: { id, email, nickname, role }
+  const [search, setSearch] = useState({ location: "", keyword: "" });
+
+  /* 로그인 성공 콜백 */
   const handleLoginSuccess = (userData) => {
     setUser(userData);
     setModal(null);
   };
 
+  /* 로그아웃 */
   const handleLogout = () => {
     setUser(null);
+    setModal(null);
   };
+
+  /* 마이페이지 클릭 */
+  const handleMyPageClick = () => {
+    if (!user) {
+      setModal("login");
+    } else {
+      setModal("mypage");
+    }
+  };
+
+  /* 검색 필터링 */
+  const filteredRestaurants = useMemo(() => {
+    const { location, keyword } = search;
+    if (!location && !keyword) return ALL_RESTAURANTS;
+
+    return ALL_RESTAURANTS.filter((r) => {
+      const matchLocation = !location || r.location.includes(location);
+      const matchKeyword =
+        !keyword ||
+        r.name.includes(keyword) ||
+        r.category.includes(keyword) ||
+        r.popular_menu.includes(keyword) ||
+        r.description.includes(keyword);
+      return matchLocation && matchKeyword;
+    });
+  }, [search]);
 
   return (
     <div>
@@ -62,31 +124,48 @@ function App() {
         user={user}
         onLoginClick={() => setModal("login")}
         onSignupClick={() => setModal("signup")}
-        onMyPageClick={() => alert(user ? `${user.nickname}님의 마이페이지` : "로그인이 필요합니다.")}
+        onMyPageClick={handleMyPageClick}
         onLogoutClick={handleLogout}
+        onSearch={setSearch}
       />
 
       <main style={{ padding: "40px 32px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1a1a1a", marginBottom: 8 }}>
-            천안 인기 맛집 🍽️
+            {search.keyword || search.location
+              ? `"${[search.location, search.keyword].filter(Boolean).join(" / ")}" 검색 결과`
+              : "천안 인기 맛집 🍽️"}
           </h2>
           <p style={{ color: "#888", fontSize: 14, marginBottom: 28 }}>
-            카드를 클릭하면 상세 정보를 볼 수 있어요
+            {filteredRestaurants.length > 0
+              ? `총 ${filteredRestaurants.length}개의 맛집`
+              : "검색 결과가 없습니다."}
           </p>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 24,
-          }}>
-            {restaurants.map((r) => (
-              <RestaurantCard
-                key={r.id}
-                restaurant={r}
-                onClick={setSelectedRestaurant}
-              />
-            ))}
-          </div>
+
+          {filteredRestaurants.length > 0 ? (
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: 24,
+            }}>
+              {filteredRestaurants.map((r) => (
+                <RestaurantCard
+                  key={r.id}
+                  restaurant={r}
+                  onClick={setSelectedRestaurant}
+                />
+              ))}
+            </div>
+          ) : (
+            <div style={{
+              textAlign: "center",
+              padding: "60px 0",
+              color: "#aaa",
+              fontSize: 15,
+            }}>
+              😢 검색 결과가 없어요. 다른 키워드로 찾아보세요!
+            </div>
+          )}
         </div>
       </main>
 
@@ -105,6 +184,14 @@ function App() {
           onClose={() => setModal(null)}
           onSuccess={handleLoginSuccess}
           onSwitchToLogin={() => setModal("login")}
+        />
+      )}
+
+      {/* 마이페이지 모달 */}
+      {modal === "mypage" && user && (
+        <MyPageModal
+          user={user}
+          onClose={() => setModal(null)}
         />
       )}
 
