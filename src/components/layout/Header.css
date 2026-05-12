@@ -45,81 +45,6 @@
   white-space: nowrap;
 }
 
-/* ── 검색바 ── */
-.search-bar {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  background: white;
-  border: 1.5px solid #e0e0e0;
-  border-radius: 50px;
-  padding: 6px 6px 6px 18px;
-  gap: 0;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  min-width: 0;
-}
-
-.search-bar:focus-within {
-  border-color: #ff6b35;
-  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
-}
-
-.search-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  width: 160px;
-}
-
-.search-divider {
-  width: 1px;
-  height: 22px;
-  background: #e0e0e0;
-  margin: 0 14px;
-  flex-shrink: 0;
-}
-
-.search-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.search-input {
-  border: none;
-  outline: none;
-  font-size: 14px;
-  color: #333;
-  background: transparent;
-  width: 100%;
-}
-
-.search-input::placeholder {
-  color: #aaa;
-}
-
-.search-btn {
-  background: #ff6b35;
-  border: none;
-  border-radius: 50%;
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.15s, transform 0.15s;
-}
-
-.search-btn:hover {
-  background: #e85c27;
-  transform: scale(1.05);
-}
-
 /* ── 네비 ── */
 .header-nav {
   display: flex;
@@ -154,7 +79,9 @@
   cursor: pointer;
   padding: 9px 16px;
   border-radius: 20px;
-  transition: background 0.15s, transform 0.15s;
+  transition:
+    background 0.15s,
+    transform 0.15s;
   white-space: nowrap;
 }
 
@@ -172,7 +99,9 @@
   cursor: pointer;
   padding: 7px 16px;
   border-radius: 20px;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   white-space: nowrap;
 }
 
@@ -198,7 +127,9 @@
   cursor: pointer;
   padding: 8px 12px;
   border-radius: 8px;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   white-space: nowrap;
 }
 
