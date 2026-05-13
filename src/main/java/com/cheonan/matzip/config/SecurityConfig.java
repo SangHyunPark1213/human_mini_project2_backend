@@ -4,6 +4,7 @@ import com.cheonan.matzip.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,18 +32,31 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 // ① CSRF 비활성화 (REST API + React 환경)
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**")  // API는 CSRF 제외
-                )
+//                .csrf(csrf -> csrf
+//                        .ignoringRequestMatchers("/api/**")  // API는 CSRF 제외
+//                )
+                .csrf(csrf -> csrf.disable())
 
                 // ② CORS 설정 (React ↔ Backend 통신 허용)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // ③ 경로별 접근 제어
                 .authorizeHttpRequests(auth -> auth
+                        // 회원 관련 (누구나 가능)
                         .requestMatchers("/api/members/join", "/api/members/login").permitAll()
+
+                        // 맛집 조회 (누구나 가능)
+                        .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
+
+                        // 맛집 등록/수정/삭제 (ADMIN만 가능)
+                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasRole("ADMIN")
+
+                        // Admin 페이지
                         .requestMatchers("/admin/login").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")  // ADMIN만 접근
+                        //.requestMatchers("/admin/**").hasAuthority("ADMIN")
+
                         .anyRequest().permitAll()
                 )
 
@@ -50,7 +64,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/admin/login")           // 커스텀 로그인 페이지
                         .loginProcessingUrl("/admin/login")  // POST 처리 URL
-                        .defaultSuccessUrl("/admin/dashboard", true)
+                        .defaultSuccessUrl("/admin", true)
                         .failureUrl("/admin/login?error=true")
                         .permitAll()
                 )
