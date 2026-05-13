@@ -11,40 +11,45 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewService {
 
     private final ReviewDao reviewDao;
+    private final MemberService memberService;  // MemberService 주입
 
     @Transactional
-    public void createService(ReviewRequest req) {
-        //리뷰 본문 저장, 생성된 리뷰 번호 받아오기
+    public void createReview(ReviewRequest req, String email) {
+
+        // memberId 조회 및 세팅 (Service 레이어에서 처리)
+        Long memberId = memberService.getMemberIdByEmail(email);
+        req.setMemberId(memberId);
+
         Long reviewId = reviewDao.insertReview(req);
 
-        //사진이 있으면 리뷰번호와 연결해서 저장(반복문)
-        if (req.getImageUrls() !=null) {
+        if (req.getImageUrls() != null) {
             for (String url : req.getImageUrls()) {
                 reviewDao.insertReviewImage(reviewId, url);
             }
         }
 
-        //태그(가성비, 혼밥 등)가 있으면 리뷰 번호와 연결해서 저장
-        if (req.getSituations() !=null) {
+        if (req.getSituations() != null) {
             for (String situation : req.getSituations()) {
-                reviewDao.insertReviewSituation(reviewId,situation);
+                reviewDao.insertReviewSituation(reviewId, situation);
             }
         }
 
-        //식당의 리뷰(댓글) 카운트 즉시 갱신
         reviewDao.updateRestaurantReviewCount(req.getRestaurantId());
     }
 
     @Transactional
-    public String toggleInteraction(Long reviewId, Long memberId, String type) {
-        //이미 눌렀는지 확인
-        boolean exist = reviewDao.checkInteractionExists(reviewId, memberId,type);
+    public String toggleInteraction(Long reviewId, String email, String type) {
 
-        //눌렀던 기록이 있으면 삭제(취소), 없다면 추가(등록) 후 결과 반환
+        // memberId 조회 (Service 레이어에서 처리)
+        Long memberId = memberService.getMemberIdByEmail(email);
+
+        boolean exist = reviewDao.checkInteractionExists(reviewId, memberId, type);
+
         if (exist) {
             reviewDao.removeInteraction(reviewId, memberId, type);
             return "REMOVED";
-        } else {reviewDao.addInteraction(reviewId, memberId, type);
+        } else {
+            reviewDao.addInteraction(reviewId, memberId, type);
             return "ADDED";
         }
     }
