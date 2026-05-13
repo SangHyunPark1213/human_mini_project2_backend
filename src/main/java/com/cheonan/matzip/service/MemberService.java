@@ -66,4 +66,12 @@ public class MemberService {
                 member.getRole()
         );
     }
+
+    // 이메일로 memberId 조회 (세션 인증 후 ID 추출용)
+    public Long getMemberIdByEmail(String email) {
+        return memberDao.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 회원입니다."))
+                .getId();
+    }
+
 }

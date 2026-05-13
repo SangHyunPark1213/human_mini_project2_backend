@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>맛집 목록 관리</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* 헤더 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #333;
+        }
+
+        .btn-register {
+            background-color: #ff6b35;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-register:hover {
+            background-color: #e55a28;
+        }
+
+        /* 필터 버튼 */
+        .filter-section {
+            margin-bottom: 25px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            background-color: #f0f0f0;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background-color: #ff6b35;
+            color: white;
+        }
+
+        .filter-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .filter-btn.active:hover {
+            background-color: #e55a28;
+        }
+
+        /* 검색 섹션 */
+        .search-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .search-select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+
+        /* 맛집 카드 그리드 */
+        .restaurant-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        @media (max-width: 1200px) {
+            .restaurant-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .restaurant-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 맛집 카드 */
+        .restaurant-card {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .restaurant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background-color: #ff6b35;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .restaurant-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-icon {
+            color: #ff6b35;
+            font-size: 16px;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 12px 0;
+        }
+
+        .stars {
+            color: #ff6b35;
+            font-size: 16px;
+        }
+
+        .review-count {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .popular-menu {
+            color: #ff6b35;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .business-hours {
+            color: #666;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 헤더 -->
+    <div class="header">
+        <h1>맛집 목록 관리</h1>
+        <button class="btn-register" onclick="location.href='restaurant-register.html'">+ 맛집 등록</button>
+    </div>
+
+    <!-- 필터 섹션 -->
+    <div class="filter-section">
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-category="전체">전체</button>
+            <button class="filter-btn" data-category="한식">한식</button>
+            <button class="filter-btn" data-category="중식">중식</button>
+            <button class="filter-btn" data-category="일식">일식</button>
+            <button class="filter-btn" data-category="양식">양식</button>
+            <button class="filter-btn" data-category="카페">카페</button>
+        </div>
+    </div>
+
+    <!-- 검색 섹션 -->
+    <div class="search-section">
+        <select class="search-select" id="searchType">
+            <option value="name">식당명</option>
+            <option value="address">주소</option>
+            <option value="phone">전화번호</option>
+        </select>
+        <input type="text" class="search-input" id="searchInput" placeholder="검색어를 입력하세요">
+    </div>
+
+    <!-- 맛집 카드 그리드 -->
+    <div class="restaurant-grid" id="restaurantGrid">
+        <!-- 카드들이 여기에 동적으로 생성됩니다 -->
+    </div>
+</div>
+
+<script>
+    let currentCategory = '전체';
+    let searchType = 'name';
+    let searchKeyword = '';
+
+    // 페이지 로드시 맛집 목록 표시
+    window.addEventListener('DOMContentLoaded', function() {
+        displayRestaurants();
+    });
+
+    // 맛집 목록 표시 함수
+    function displayRestaurants() {
+        const grid = document.getElementById('restaurantGrid');
+        let filteredRestaurants = restaurantData;
+
+        // 카테고리 필터링
+        if (currentCategory !== '전체') {
+            filteredRestaurants = filteredRestaurants.filter(r => r.category === currentCategory);
+        }
+
+        // 검색 필터링
+        if (searchKeyword) {
+            filteredRestaurants = filteredRestaurants.filter(r => {
+                if (searchType === 'name') {
+                    return r.name.toLowerCase().includes(searchKeyword.toLowerCase());
+                } else if (searchType === 'address') {
+                    return r.address.toLowerCase().includes(searchKeyword.toLowerCase());
+                } else if (searchType === 'phone') {
+                    return r.phone.includes(searchKeyword);
+                }
+                return true;
+            });
+        }
+
+        // 결과가 없을 때
+        if (filteredRestaurants.length === 0) {
+            grid.innerHTML = '<div class="no-results">검색 결과가 없습니다.</div>';
+            return;
+        }
+
+        // 카드 생성
+        grid.innerHTML = filteredRestaurants.map(restaurant => `
+            <div class="restaurant-card" onclick="goToDetail(${restaurant.id})">
+                <img src="${restaurant.image}" alt="${restaurant.name}" class="card-image">
+                <div class="card-content">
+                    <span class="category-badge">${restaurant.category}</span>
+                    <h3 class="restaurant-name">${restaurant.name}</h3>
+                    <div class="info-row">
+                        <span class="info-icon">📍</span>
+                        <span>${restaurant.address}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-icon">📞</span>
+                        <span>${restaurant.phone}</span>
+                    </div>
+                    <div class="business-hours">
+                        <span class="info-icon">🕐</span>
+                        <span>${restaurant.hours}</span>
+                    </div>
+                    <div class="rating">
+                        <span class="stars">${'⭐'.repeat(5)}</span>
+                        <span class="review-count">(${restaurant.reviewCount})</span>
+                    </div>
+                    <div class="popular-menu">
+                        <span>⭐</span>
+                        <span>${restaurant.popularMenu}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 상세페이지로 이동
+    function goToDetail(id) {
+        // ID를 URL 파라미터로 전달
+        window.location.href = `restaurant-detail.html?id=${id}`;
+    }
+
+    // 필터 버튼 클릭 이벤트
+    document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            currentCategory = this.dataset.category;
+            displayRestaurants();
+        });
+    });
+
+    // 검색 타입 변경
+    document.getElementById('searchType').addEventListener('change', function() {
+        searchType = this.value;
+    });
+
+    // 검색 입력
+    document.getElementById('searchInput').addEventListener('input', function() {
+        searchKeyword = this.value;
+        displayRestaurants();
+    });
+</script>
+</body>
+</html>
