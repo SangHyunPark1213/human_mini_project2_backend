@@ -73,7 +73,7 @@
             width: 260px;
             min-height: 170px;
             padding: 28px 30px;
-            border: 1px solid #e1e8f3;
+            border: 1px solid #bbbec4;
             background-color: white;
             cursor: pointer;
             border-radius: 20px;
@@ -107,7 +107,7 @@
     width: 100%;
     min-height: 105px;
     padding: 24px 30px;
-    border: 1px solid #e1e8f3;
+    border: 1px solid #bbbec4;
     background-color: white;
     cursor: pointer;
     border-radius: 20px;
@@ -168,6 +168,125 @@
             margin: 20px auto 0;
             display: block;
         }
+
+        .admin-card {
+    border: 1px solid #e1e8f3;
+    background-color: white;
+    text-align: left;
+}
+
+.modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-bg.active {
+    display: flex;
+}
+
+.modal-box {
+    width: 760px;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 36px 42px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    position: relative;
+    box-sizing: border-box;
+}
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    border: none;
+    background: none;
+    font-size: 32px;
+    cursor: pointer;
+    color: #333;
+}
+
+.modal-box h2 {
+    font-size: 26px;
+    font-weight: 900;
+    color: #333;
+    margin: 0 0 8px;
+}
+
+.modal-desc {
+    color: #5b6475;
+    font-size: 15px;
+    margin-bottom: 28px;
+}
+
+.modal-box label {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: #333;
+    margin: 18px 0 8px;
+}
+
+.modal-box input,
+.modal-box select {
+    width: 100%;
+    height: 50px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 0 16px;
+    font-size: 15px;
+    color: #333;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.modal-box input::placeholder {
+    color: #9ca3af;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.form-row > div {
+    flex: 1;
+}
+
+.modal-button-box {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.cancel-btn,
+.submit-btn {
+    height: 48px;
+    padding: 0 28px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    border: 1px solid #e5e7eb;
+    background: white;
+    color: #333;
+}
+
+.submit-btn {
+    border: none;
+    background-color: #ff6b3d;
+    color: white;
+}
     </style>
 </head>
 <body>
@@ -185,10 +304,10 @@
 </section>
 
 <section class="admin-container">
-    <a class="admin-card" href="/admin/restaurants/new">
+    <button class="admin-card" type="button" onclick="openRestaurantModal()">
         <strong>맛집 등록</strong>
         <span>식당 이름, 주소, 카테고리, 대표 이미지, 인기 메뉴를 등록합니다.</span>
-    </a>
+    </button>
 
     <a class="admin-card" href="/admin/restaurants">
         <strong>맛집 목록 관리</strong>
@@ -208,5 +327,75 @@
     </a>
 </section>
 
+<div class="modal-bg" id="restaurantModal">
+    <div class="modal-box">
+        <button class="modal-close" type="button" onclick="closeRestaurantModal()">×</button>
+
+        <h2>맛집 정보 입력</h2>
+        <p class="modal-desc">사용자 페이지에 표시될 식당 정보를 입력해주세요.</p>
+
+        <form action="/admin/restaurants" method="post">
+            <label>맛집 이름</label>
+            <input type="text" name="name" placeholder="예: 청담 한정식" required>
+
+            <label>주소</label>
+            <input type="text" name="address" placeholder="예: 충남 천안시 동남구 ..." required>
+
+            <div class="form-row">
+                <div>
+                    <label>전화번호</label>
+                    <input type="text" name="phone" placeholder="예: 041-111-2222">
+                </div>
+
+                <div>
+                    <label>카테고리</label>
+                    <select name="category" required>
+                        <option value="">카테고리 선택</option>
+                        <option value="한식">한식</option>
+                        <option value="중식">중식</option>
+                        <option value="일식">일식</option>
+                        <option value="양식">양식</option>
+                        <option value="카페">카페</option>
+                        <option value="술집">술집</option>
+                        <option value="디저트">디저트</option>
+                        <option value="패스트푸드">패스트푸드</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label>위도</label>
+                    <input type="number" step="0.0000001" name="latitude" placeholder="예: 36.8151290" required>
+                </div>
+
+                <div>
+                    <label>경도</label>
+                    <input type="number" step="0.0000001" name="longitude" placeholder="예: 127.1138930" required>
+                </div>
+            </div>
+
+            <label>대표 이미지 URL</label>
+            <input type="text" name="thumbnail" placeholder="Firebase 이미지 URL">
+
+            <label>인기 메뉴</label>
+            <input type="text" name="popularMenu" placeholder="예: 전복죽, 갈비찜">
+
+            <div class="modal-button-box">
+                <button class="cancel-btn" type="button" onclick="closeRestaurantModal()">취소</button>
+                <button class="submit-btn" type="submit">등록하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    function openRestaurantModal() {
+        document.getElementById("restaurantModal").classList.add("active");
+    }
+
+    function closeRestaurantModal() {
+        document.getElementById("restaurantModal").classList.remove("active");
+    }
+</script>
 </body>
 </html>
