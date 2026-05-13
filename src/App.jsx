@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import Header from "./components/layout/Header";
-import { LoginModal, SignupModal } from "./components/common/AuthModal";
+import AuthModal from "./components/common/AuthModal";
 import MainPage from "./pages/MainPage";
 
 function App() {
@@ -30,19 +30,12 @@ function App() {
 
       <MainPage />
 
-      {modal === "login" && (
-        <LoginModal
+      {modal && (
+        <AuthModal
+          mode={modal}
           onClose={() => setModal(null)}
-          onSuccess={handleLoginSuccess}
-          onSwitchToSignup={() => setModal("signup")}
-        />
-      )}
-
-      {modal === "signup" && (
-        <SignupModal
-          onClose={() => setModal(null)}
-          onSuccess={handleLoginSuccess}
-          onSwitchToLogin={() => setModal("login")}
+          onLoginSuccess={handleLoginSuccess}
+          onSwitchMode={setModal}
         />
       )}
     </div>
