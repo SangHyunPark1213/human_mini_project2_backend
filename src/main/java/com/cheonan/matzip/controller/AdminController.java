@@ -19,5 +19,10 @@ public class AdminController {
     public String adminLoginPage() {
         return "admin/login";
     }
+
+    @GetMapping("/receipts")
+    public String receiptList() {
+        return "admin/receipt-list";
+    }
 }
 
