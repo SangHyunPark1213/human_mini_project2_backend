@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>맛집 목록 관리 (모달 통합형)</title>
+    <style>
+        /* 기존 스타일 유지 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f5f5f5; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { font-size: 28px; color: #333; }
+        .btn-register { background-color: #ff6b35; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+        .filter-buttons { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        .filter-btn { padding: 10px 20px; border: none; border-radius: 20px; background-color: #f0f0f0; color: #666; cursor: pointer; }
+        .filter-btn.active { background-color: #ff6b35; color: white; }
+
+        .search-section { display: flex; gap: 10px; margin-bottom: 30px; }
+        .search-input { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 8px; }
+
+        .restaurant-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+        .restaurant-card { background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; }
+        .restaurant-card:hover { transform: translateY(-5px); }
+        .card-image { width: 100%; height: 220px; object-fit: cover; }
+        .card-content { padding: 20px; }
+        .category-badge { background-color: #ff6b35; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; margin-bottom: 10px; display: inline-block; }
+
+        /* --- 모달 스타일 추가 --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 600px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header-img { width: 100%; height: 300px; object-fit: cover; }
+        .modal-body { padding: 30px; }
+        .close-btn { position: absolute; right: 20px; top: 15px; font-size: 35px; color: white; cursor: pointer; text-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 2100; }
+
+        .info-item { display: flex; gap: 10px; margin-bottom: 15px; font-size: 16px; color: #444; }
+        .info-label { font-weight: bold; color: #ff6b35; min-width: 70px; }
+
+        .menu-box { background: #fffcf0; border-left: 4px solid #ff6b35; padding: 15px; margin-top: 20px; }
+        .no-results { text-align: center; padding: 50px; color: #999; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>맛집 목록 관리</h1>
+        <button class="btn-register" onclick="location.href='/admin/register'">+ 맛집 등록</button>
+    </div>
+
+    <div class="filter-section">
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-category="전체">전체</button>
+            <button class="filter-btn" data-category="한식">한식</button>
+            <button class="filter-btn" data-category="중식">중식</button>
+            <button class="filter-btn" data-category="일식">일식</button>
+            <button class="filter-btn" data-category="양식">양식</button>
+            <button class="filter-btn" data-category="카페">카페</button>
+        </div>
+    </div>
+
+    <div class="search-section">
+        <select class="search-select" id="searchType">
+            <option value="name">식당명</option>
+            <option value="address">주소</option>
+        </select>
+        <input type="text" class="search-input" id="searchInput" placeholder="검색어를 입력하세요">
+    </div>
+
+    <div class="restaurant-grid" id="restaurantGrid"></div>
+</div>
+
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+
+        <div id="viewMode">
+            <div id="viewContent"></div>
+            <div style="margin-top: 20px; display: flex; gap: 10px; padding: 20px;">
+                <button class="filter-btn" style="flex: 1;" onclick="closeModal()">닫기</button>
+                <button class="filter-btn" style="flex: 1; background: #ff6b35; color: white;" onclick="toggleEditMode(true)">수정하기</button>
+            </div>
+        </div>
+
+        <div id="editMode" style="display: none; padding: 30px;">
+            <h2 style="margin-bottom: 20px;">맛집 정보 수정</h2>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="info-item"><span class="info-label">식당명</span><input type="text" id="editName" class="search-input"></div>
+                <div class="info-item"><span class="info-label">주소</span><input type="text" id="editAddress" class="search-input"></div>
+                <div class="info-item"><span class="info-label">카테고리</span>
+                    <select id="editCategory" class="search-select">
+                        <option value="한식">한식</option><option value="중식">중식</option>
+                        <option value="일식">일식</option><option value="양식">양식</option><option value="카페">카페</option>
+                    </select>
+                </div>
+                <div class="info-item"><span class="info-label">연락처</span><input type="text" id="editPhone" class="search-input"></div>
+                <div class="info-item"><span class="info-label">대표메뉴</span><input type="text" id="editMenu" class="search-input"></div>
+
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="button" class="filter-btn" style="flex: 1;" onclick="toggleEditMode(false)">취소</button>
+                    <button type="button" class="filter-btn" style="flex: 1; background: #e74c3c; color: white;" onclick="deleteRestaurant()">삭제하기</button>
+                    <button type="submit" class="filter-btn" style="flex: 1; background: #4CAF50; color: white;">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let restaurantData = [];
+    let currentCategory = '전체';
+    let currentData = null;  // [추가] 현재 선택된 식당의 상세 데이터 저장용
+    let searchKeyword = '';
+
+    // 서버에서 데이터 가져오기
+    async function loadDataFromServer() {
+        try {
+            let url = `/api/restaurants`;
+            if (currentCategory !== '전체') url += `?category=${encodeURIComponent(currentCategory)}`;
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('데이터 로드 실패');
+
+            restaurantData = await response.json();
+            displayRestaurants();
+        } catch (error) {
+            console.error(error);
+            document.getElementById('restaurantGrid').innerHTML = '<p class="no-results">데이터를 가져오지 못했습니다.</p>';
+        }
+    }
+
+    // 목록 그리기
+    function displayRestaurants() {
+        const grid = document.getElementById('restaurantGrid');
+        let filtered = restaurantData.filter(r =>
+            r.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            r.address.toLowerCase().includes(searchKeyword.toLowerCase())
+        );
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '<div class="no-results">검색 결과가 없습니다.</div>';
+            return;
+        }
+
+        grid.innerHTML = filtered.map(r => `
+            <div class="restaurant-card" onclick="openDetail(${r.id})">
+                <img src="${r.thumbnail || 'https://via.placeholder.com/300x220'}" class="card-image">
+                <div class="card-content">
+                    <span class="category-badge">${r.category}</span>
+                    <h3 class="restaurant-name">${r.name}</h3>
+                    <p style="font-size: 14px; color: #666; margin-top: 5px;">📍 ${r.address}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // [핵심] 모달 열기 및 단건 데이터 조회
+    async function openDetail(id) {
+        try {
+            const response = await fetch(`/api/restaurants/${id}`);
+            if (!response.ok) throw new Error();
+
+            // 중요: 서버에서 가져온 상세 정보를 전역 변수 currentData에 저장합니다.
+            currentData = await response.json();
+
+            const viewContent = document.getElementById('viewContent');
+
+            // [상세보기 모달] 버튼 부분 수정
+            viewContent.innerHTML = `
+                <img src="${currentData.thumbnail || 'https://via.placeholder.com/600x300'}" class="modal-header-img">
+                <div class="modal-body">
+                    <span class="category-badge">${currentData.category}</span>
+                    <h2>${currentData.name}</h2>
+                    <p>📍 ${currentData.address}</p>
+                    <p>📞 ${currentData.phone || '정보 없음'}</p>
+                    <div class="menu-box">🔥 대표 메뉴: ${currentData.popularMenu || '없음'}</div>
+
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button class="filter-btn" style="flex: 1; background: #e74c3c; color: white;" onclick="deleteRestaurant()">맛집 삭제</button>
+                        <button class="filter-btn" style="flex: 1; background: #ff6b35; color: white;" onclick="toggleEditMode(true)">정보 수정</button>
+                    </div>
+                </div>
+            `;
+
+            toggleEditMode(false); // 상세보기를 먼저 보여줌
+            document.getElementById('detailModal').style.display = 'block';
+        } catch (e) {
+            alert("데이터를 가져오지 못했습니다.");
+        }
+    }
+
+    function toggleEditMode(isEdit) {
+        const viewMode = document.getElementById('viewMode');
+        const editMode = document.getElementById('editMode');
+
+        if (isEdit) {
+            viewMode.style.display = 'none';
+            editMode.style.display = 'block';
+
+            // 수정 모드 진입 시: 상세보기에서 썼던 데이터를 입력창에 자동으로 채움
+            if (currentData) {
+                document.getElementById('editId').value = currentData.id;
+                document.getElementById('editName').value = currentData.name;
+                document.getElementById('editAddress').value = currentData.address;
+                document.getElementById('editCategory').value = currentData.category;
+                document.getElementById('editPhone').value = currentData.phone || '';
+                document.getElementById('editMenu').value = currentData.popularMenu || '';
+            }
+        } else {
+            viewMode.style.display = 'block';
+            editMode.style.display = 'none';
+        }
+    }
+
+    // [수정 요청 처리]
+    document.getElementById('editForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editId').value;
+
+        const updateData = {
+            name: document.getElementById('editName').value,
+            address: document.getElementById('editAddress').value,
+            category: document.getElementById('editCategory').value,
+            phone: document.getElementById('editPhone').value,
+            popularMenu: document.getElementById('editMenu').value
+        };
+
+        try {
+            const response = await fetch(`/api/restaurants/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+
+            if(response.ok) {
+                alert("수정되었습니다!");
+                closeModal();
+                loadDataFromServer(); // 목록 새로고침
+            } else {
+                alert("수정 실패!");
+            }
+        } catch (error) { console.error(error); }
+    };
+
+    function closeModal() {
+        document.getElementById('detailModal').style.display = 'none';
+    }
+
+    // 이벤트 리스너들
+    window.addEventListener('DOMContentLoaded', loadDataFromServer);
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentCategory = this.dataset.category;
+            loadDataFromServer();
+        });
+    });
+
+    document.getElementById('searchInput').addEventListener('input', e => {
+        searchKeyword = e.target.value;
+        displayRestaurants();
+    });
+
+    // 모달 외곽 클릭 시 닫기
+    window.onclick = e => { if (e.target == document.getElementById('detailModal')) closeModal(); };
+
+    // [삭제 요청 처리]
+    async function deleteRestaurant() {
+        const id = document.getElementById('editId').value;
+        const name = document.getElementById('editName').value;
+
+        // 사용자에게 한 번 더 확인 (실수 방지)
+        if (!confirm(`'${name}' 식당을 정말 삭제하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/restaurants/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert("삭제되었습니다.");
+                closeModal();
+                loadDataFromServer(); // 목록 새로고침
+            } else {
+                alert("삭제에 실패했습니다.");
+            }
+        } catch (error) {
+            console.error("삭제 중 에러 발생:", error);
+            alert("서버 통신 중 에러가 발생했습니다.");
+        }
+    }
+
+    // [삭제 요청 처리]
+    async function deleteRestaurant() {
+        // currentData에 저장된 id와 이름을 사용합니다.
+        if (!currentData || !currentData.id) return;
+
+        const id = currentData.id;
+        const name = currentData.name;
+
+        // 사용자에게 한 번 더 확인 (실수 방지)
+        if (!confirm(`'${name}' 식당 정보를 DB에서 완전히 삭제하시겠습니까?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/restaurants/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert("DB에서 성공적으로 삭제되었습니다.");
+                closeModal(); // 모달 닫기
+                loadDataFromServer(); // 목록 새로고침 (삭제된 항목 제거)
+            } else {
+                const errorData = await response.json();
+                alert("삭제 실패: " + (errorData.message || "서버 에러가 발생했습니다."));
+            }
+        } catch (error) {
+            console.error("삭제 중 에러 발생:", error);
+            alert("서버 통신 중 에러가 발생했습니다.");
+        }
+    }
+
+</script>
+
+</body>
+</html>
