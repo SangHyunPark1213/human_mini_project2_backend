@@ -1,13 +1,17 @@
-create table member (
-   id         number primary key,
-   email      varchar2(100) unique not null,
-   password   varchar2(255) not null,
-   nickname   varchar2(50) not null,
-   role       varchar2(20) default 'USER' not null,
-   created_at date default sysdate
+CREATE TABLE member
+(
+    id         NUMBER PRIMARY KEY,
+    email      VARCHAR2(100) UNIQUE NOT NULL,
+    password   VARCHAR2(255) NOT NULL,
+    nickname   VARCHAR2(50) NOT NULL,
+    role       VARCHAR2(20) DEFAULT 'USER' NOT NULL,
+    created_at DATE DEFAULT SYSDATE,
+
+    -- role CHECK 제약 추가
+    CONSTRAINT CHK_MEMBER_ROLE CHECK (role IN ('USER', 'ADMIN'))
 );
 
-create sequence member_seq start with 1 increment by 1 nocache nocycle;
-
-select *
-  from member;
+CREATE SEQUENCE member_seq
+    START WITH 1
+    INCREMENT BY 1 NOCACHE
+    NOCYCLE;
