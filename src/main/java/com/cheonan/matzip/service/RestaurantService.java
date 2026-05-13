@@ -19,8 +19,8 @@ public class RestaurantService {
         return restaurantDao.save(request);
     }
 
-    public List<RestaurantResponse> findAll() {
-        return restaurantDao.findAll()
+    public List<RestaurantResponse> findAll(String category) {
+        return restaurantDao.findAll(category)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -47,5 +47,23 @@ public class RestaurantService {
                 restaurant.getThumbnail(),
                 restaurant.getPopularMenu()
         );
+    }
+
+    public void update(Long id, RestaurantCreateRequest request) {
+        // 존재 여부 먼저 확인
+        restaurantDao.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("존재하지 않는 맛집입니다.")
+                );
+        restaurantDao.update(id, request);
+    }
+
+    public void delete(Long id) {
+        // 존재 여부 먼저 확인
+        restaurantDao.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("존재하지 않는 맛집입니다.")
+                );
+        restaurantDao.delete(id);
     }
 }
