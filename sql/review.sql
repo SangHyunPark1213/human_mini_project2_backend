@@ -26,7 +26,7 @@ CREATE TABLE REVIEW
 
     CONSTRAINT CHK_REVIEW_RATING CHECK (rating BETWEEN 1 AND 5),
     CONSTRAINT CHK_REVIEW_REVISIT CHECK (revisit IN ('Y', 'N')),
-    CONSTRAINT CHK_REVIEW_VERIFY CHECK (verification_status IN ('Y', 'N')),
+    CONSTRAINT CHK_REVIEW_VERIFY CHECK (verification_status IN ('N', 'A', 'R')),
 
     -- ON DELETE CASCADE 추가 맛집 or 회원 삭제시 리뷰 데이터 삭제 되게.
     CONSTRAINT FK_REVIEW_RESTAURANT FOREIGN KEY (restaurant_id)
