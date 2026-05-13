@@ -52,7 +52,7 @@ public class AdminController {
         return "admin/index";
     }
 
-    @GetMapping("/receipts")
+    @GetMapping("/receipt-list")
     public String receiptList(Model model) {
         model.addAttribute("receipts", Collections.emptyList());
         return "admin/receipt-list";
