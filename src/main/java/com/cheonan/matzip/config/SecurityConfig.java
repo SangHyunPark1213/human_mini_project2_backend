@@ -32,9 +32,6 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 // ① CSRF 비활성화 (REST API + React 환경)
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**")  // API는 CSRF 제외
-                )
                 .csrf(csrf -> csrf.disable())
 
                 // ② CORS 설정 (React ↔ Backend 통신 허용)

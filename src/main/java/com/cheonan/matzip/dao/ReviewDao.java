@@ -12,28 +12,33 @@ public class ReviewDao {
     private final JdbcTemplate jdbcTemplate;
 
     public Long insertReview(ReviewRequest req) {
-        String sql ="INSERT INTO REVIEW(id, restaurant_id, member_id, rating, content, revisit, receipt_url) "
-                + "VALUES(REVIEW_SEQ.NEXTVAL, ?, ?, ?, ?, ?, ?)";
 
+        // ① NEXTVAL 먼저 채번
+        Long reviewId = jdbcTemplate.queryForObject(
+                "SELECT REVIEW_SEQ.NEXTVAL FROM DUAL", Long.class
+        );
 
-    //데이터 채우기
-    jdbcTemplate.update(sql,
-                        req.getRestaurantId(),
-                        req.getMemberId(),
-                        req.getRating(),
-                        req.getContent(),
-                        req.getRevisit(),
-                        req.getReceiptUrl());
+        // ② 채번된 ID로 INSERT
+        String sql = "INSERT INTO REVIEW(id, restaurant_id, member_id, rating, content, revisit, receipt_url) "
+                + "VALUES(?, ?, ?, ?, ?, ?, ?)";
 
-    return jdbcTemplate.queryForObject("SELECT REVIEW_SEQ.CURRVAL FROM DUAL", Long.class);
+        jdbcTemplate.update(sql,
+                reviewId,
+                req.getRestaurantId(),
+                req.getMemberId(),
+                req.getRating(),
+                req.getContent(),
+                req.getRevisit(),
+                req.getReceiptUrl()
+        );
 
-
+        return reviewId;  // ③ 채번된 ID 반환
     }
 
     //리뷰 이미지 저장 (최대 3개)
     public void insertReviewImage(Long reviewId, String imageUrl) {
         String sql = "INSERT INTO REVIEW_IMAGE(id, review_id, image_url)" +
-                    "VALUES (REVIEW_IMAGE_SEQ.NEXTVAL, ?, ?)";
+                "VALUES (REVIEW_IMAGE_SEQ.NEXTVAL, ?, ?)";
         jdbcTemplate.update(sql, reviewId, imageUrl);
     }
 
@@ -45,8 +50,8 @@ public class ReviewDao {
 
     public void updateRestaurantReviewCount(Long restaurantId) {
         String sql = "UPDATE RESTAURANT " +
-                    "SET review_count = (SELECT COUNT(*) FROM REVIEW WHERE restaurant_id = ?) "
-                    + "WHERE id = ?";
+                "SET review_count = (SELECT COUNT(*) FROM REVIEW WHERE restaurant_id = ?) "
+                + "WHERE id = ?";
 
         //첫 번째 ?에는 개수를 셀 식당 ID, 두 번째 ?에는 업데이트할 식당 ID
         jdbcTemplate.update(sql, restaurantId, restaurantId);
@@ -73,11 +78,11 @@ public class ReviewDao {
 
         //누가 어떤 버튼을 남겼는지 기록추가
         jdbcTemplate.update("INSERT INTO " + tableName + "(review_id, member_id) VALUES(?, ?)"
-                            , reviewId, memberId);
+                , reviewId, memberId);
 
         //리뷰 테이블의 해당 리뷰의 카운트 숫자 +1
         jdbcTemplate.update("UPDATE REVIEW SET " + updateCol
-                            + "=" + updateCol + " + 1 WHERE id = ?", reviewId);
+                + "=" + updateCol + " + 1 WHERE id = ?", reviewId);
     }
 
 
