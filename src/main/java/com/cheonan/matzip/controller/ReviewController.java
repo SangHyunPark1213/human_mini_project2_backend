@@ -27,9 +27,38 @@ public class ReviewController {
             return ResponseEntity.status(401).body("로그인이 필요합니다.");
         }
 
-        // Controller는 email만 넘김 → 비즈니스 로직은 Service에서
         reviewService.createReview(req, userDetails.getUsername());
         return ResponseEntity.ok("등록 완료");
+    }
+
+    // ── 리뷰 수정 ───────────────────────────────────────
+    @PutMapping("/{reviewId}")
+    public ResponseEntity<String> updateReview(
+            @PathVariable Long reviewId,
+            @RequestBody ReviewRequest req,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        reviewService.updateReview(reviewId, req, userDetails.getUsername());
+        return ResponseEntity.ok("수정 완료");
+    }
+
+    // ── 리뷰 삭제 ───────────────────────────────────────
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<String> deleteReview(
+            @PathVariable Long reviewId,
+            @RequestParam Long restaurantId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        reviewService.deleteReview(reviewId, restaurantId, userDetails.getUsername());
+        return ResponseEntity.ok("삭제 완료");
     }
 
     // ── 좋아요/도움돼요 토글 ────────────────────────────
@@ -43,7 +72,6 @@ public class ReviewController {
             return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
         }
 
-        // Controller는 email만 넘김
         String result = reviewService.toggleInteraction(
                 reviewId, userDetails.getUsername(), type
         );
