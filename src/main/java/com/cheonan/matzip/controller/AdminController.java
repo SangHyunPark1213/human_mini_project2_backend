@@ -65,7 +65,9 @@ public class AdminController {
     }
 
     @GetMapping("/restaurants")
-    public String restaurantList() {
+    public String restaurantList(Model model) {
+        model.addAttribute("kakaoMapKey", kakaoMapKey);
+        // 만약 리스트 화면에서도 파이어베이스 설정이 필요하다면 여기에 추가로 addAttribute 하세요.
         return "admin/restaurant-list";
     }
 }

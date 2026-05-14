@@ -168,15 +168,17 @@
 
                 <div class="form-group">
                     <label class="form-label">지도에서 위치 선택</label>
-                    <div class="map-placeholder">
-                        <p style="color: #bbb; font-size: 13px;">[ 지도 API 연동 예정 영역 ]</p>
-                    </div>
+                    <div id="map" class="map-placeholder"></div> <!-- id="map" 추가, 내부 텍스트 삭제 -->
                     <p style="font-size: 11px; color: #aaa; margin-top: 5px;">지도 클릭해 맛집 위치를 지정해주세요.</p>
+
+                    <!-- 서버로 보낼 위도(Lat), 경도(Lng)를 저장할 숨김 필드 -->
+                    <input type="hidden" id="editLat">
+                    <input type="hidden" id="editLng">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">대표 사진 업로드</label>
-                    <input type="file" class="file-upload-box">
+                    <label class="form-label" for="editPhoto">대표 사진 업로드</label>
+                    <input type="file" id="editPhoto" class="file-upload-box">
                 </div>
 
                 <div class="form-group">
@@ -193,6 +195,8 @@
         </div>
     </div>
 </div>
+
+<script th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js'(appkey=${kakaoMapKey})}"></script>
 
 <script>
     let restaurantData = [];
@@ -280,24 +284,42 @@
     // 수정끝
 
     function toggleEditMode(isEdit) {
-        const viewMode = document.getElementById('viewMode');
-        const editMode = document.getElementById('editMode');
-        if (isEdit) {
-            viewMode.style.display = 'none';
-            editMode.style.display = 'block';
-            if (currentData) {
-                document.getElementById('editId').value = currentData.id;
-                document.getElementById('editName').value = currentData.name;
-                document.getElementById('editAddress').value = currentData.address;
-                document.getElementById('editCategory').value = currentData.category;
-                document.getElementById('editPhone').value = currentData.phone || '';
-                document.getElementById('editMenu').value = currentData.popularMenu || '';
-            }
-        } else {
-            viewMode.style.display = 'block';
-            editMode.style.display = 'none';
+    const viewMode = document.getElementById('viewMode');
+    const editMode = document.getElementById('editMode');
+
+    if (isEdit) {
+        // 상세 보기 숨기고 수정 폼 보이기
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+
+        if (currentData) {
+            // 1. 일반 필드 값 세팅
+            document.getElementById('editId').value = currentData.id;
+            document.getElementById('editName').value = currentData.name;
+            document.getElementById('editAddress').value = currentData.address;
+            document.getElementById('editCategory').value = currentData.category;
+            document.getElementById('editPhone').value = currentData.phone || '';
+            document.getElementById('editMenu').value = currentData.popularMenu || '';
+
+            // 2. DB에서 가져온 위경도를 숨겨진 input(hidden)에 저장
+            const lat = currentData.latitude || '';
+            const lng = currentData.longitude || '';
+
+            document.getElementById('editLat').value = lat;
+            document.getElementById('editLng').value = lng;
+
+            // 3. 지도 호출 (300ms 지연)
+            // 모달창이 완전히 block으로 변한 뒤 지도를 그려야 깨짐 현상이 없습니다.
+            setTimeout(() => {
+                initMap(lat, lng);
+            }, 300);
         }
+    } else {
+        // 수정 취소 시 상세 보기로 복귀
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
     }
+}
 
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
@@ -307,7 +329,9 @@
             address: document.getElementById('editAddress').value,
             category: document.getElementById('editCategory').value,
             phone: document.getElementById('editPhone').value,
-            popularMenu: document.getElementById('editMenu').value
+            popularMenu: document.getElementById('editMenu').value,
+            latitude: document.getElementById('editLat').value,
+            longitude: document.getElementById('editLng').value
         };
         try {
             const response = await fetch(`/api/restaurants/${id}`, {
@@ -360,6 +384,67 @@
             } else { alert("삭제 실패"); }
         } catch (error) { alert("서버 통신 중 에러 발생"); }
     }
+
+
+    let map;
+    let marker;
+
+    function initMap(lat, lng) {
+    const mapContainer = document.getElementById('map');
+
+    // 1. 숫자로 변환 및 유효성 검사
+    const nLat = parseFloat(lat);
+    const nLng = parseFloat(lng);
+
+    if (isNaN(nLat) || isNaN(nLng)) {
+        console.error("유효하지 않은 좌표입니다:", lat, lng);
+        return;
+    }
+
+    // 2. 좌표 객체 생성 (순서 중요: Option보다 먼저 정의되어야 함)
+    const centerPos = new kakao.maps.LatLng(nLat, nLng);
+
+    // 3. 지도 설정 정의 (순서 중요: Map 생성보다 먼저 정의되어야 함)
+    const mapOption = {
+        center: centerPos, // 지도의 중심좌표
+        level: 3           // 지도의 확대 레벨
+    };
+
+    // 4. 지도 생성 (정의된 mapOption을 사용)
+    if (!map) {
+        map = new kakao.maps.Map(mapContainer, mapOption);
+
+        // 지도를 클릭한 위치에 표출할 마커를 생성합니다
+        marker = new kakao.maps.Marker({
+            position: centerPos
+        });
+        marker.setMap(map);
+    } else {
+        // 이미 지도가 있다면 중심점과 마커 위치만 변경
+        map.setCenter(centerPos);
+        marker.setPosition(centerPos);
+    }
+
+    // 5. 지도 클릭 이벤트 등록 (한 번만 등록되도록 처리)
+    kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+        const latlng = mouseEvent.latLng;
+        marker.setPosition(latlng);
+        marker.setMap(map);
+
+        document.getElementById('editLat').value = latlng.getLat();
+        document.getElementById('editLng').value = latlng.getLng();
+    });
+
+    // 6. 모달에서 지도가 깨지는 현상 방지
+    setTimeout(() => {
+        if(map) {
+            map.relayout();
+            map.setCenter(centerPos);
+        }
+    }, 200);
+}
+
+
 </script>
 </body>
 </html>
