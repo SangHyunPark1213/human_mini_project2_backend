@@ -1,9 +1,12 @@
 package com.cheonan.matzip.dao;
 
 import com.cheonan.matzip.dto.request.ReviewRequest;
+import com.cheonan.matzip.dto.response.ReceiptListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -135,4 +138,41 @@ public class ReviewDao {
                 reviewId
         );
     }
+
+    public List<ReceiptListResponse> findAllWithReceipt() {
+        String sql = """
+            SELECT r.id, r.content, r.rating,
+                   r.verification_status, r.receipt_url,
+                   r.created_at,
+                   m.nickname,
+                   rs.name AS restaurant_name
+            FROM REVIEW r
+            JOIN MEMBER m ON r.member_id = m.id
+            JOIN RESTAURANT rs ON r.restaurant_id = rs.id
+            WHERE r.receipt_url IS NOT NULL
+            ORDER BY r.created_at DESC
+            """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) ->
+                ReceiptListResponse.from(
+                        rs.getLong("id"),
+                        rs.getString("content"),
+                        rs.getInt("rating"),
+                        rs.getString("verification_status"),
+                        rs.getString("receipt_url"),
+                        rs.getTimestamp("created_at") != null
+                                ? rs.getTimestamp("created_at").toLocalDateTime()
+                                : null,
+                        rs.getString("nickname"),
+                        rs.getString("restaurant_name")
+                )
+        );
+    }
+
+    // ── 영수증 승인/거절 처리 ─────────────────────────
+    public void updateVerificationStatus(Long reviewId, String status) {
+        String sql = "UPDATE REVIEW SET verification_status = ? WHERE id = ?";
+        jdbcTemplate.update(sql, status, reviewId);
+    }
+
 }

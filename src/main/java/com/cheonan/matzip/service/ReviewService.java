@@ -2,9 +2,12 @@ package com.cheonan.matzip.service;
 
 import com.cheonan.matzip.dao.ReviewDao;
 import com.cheonan.matzip.dto.request.ReviewRequest;
+import com.cheonan.matzip.dto.response.ReceiptListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -105,4 +108,20 @@ public class ReviewService {
             return "ADDED";
         }
     }
+
+    // ── 영수증 목록 조회 ──────────────────────────────
+    public List<ReceiptListResponse> getReceiptList() {
+        return reviewDao.findAllWithReceipt();
+    }
+
+    // ── 영수증 승인 ───────────────────────────────────
+    public void approveReceipt(Long reviewId) {
+        reviewDao.updateVerificationStatus(reviewId, "A");
+    }
+
+    // ── 영수증 거절 ───────────────────────────────────
+    public void rejectReceipt(Long reviewId) {
+        reviewDao.updateVerificationStatus(reviewId, "R");
+    }
+
 }
