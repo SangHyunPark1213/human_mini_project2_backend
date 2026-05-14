@@ -3,6 +3,7 @@ package com.cheonan.matzip.service;
 import com.cheonan.matzip.dao.ReviewDao;
 import com.cheonan.matzip.dto.request.ReviewRequest;
 import com.cheonan.matzip.dto.response.ReceiptListResponse;
+import com.cheonan.matzip.dto.response.ReviewResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -122,6 +123,25 @@ public class ReviewService {
     // ── 영수증 거절 ───────────────────────────────────
     public void rejectReceipt(Long reviewId) {
         reviewDao.updateVerificationStatus(reviewId, "R");
+    }
+
+    // ── 맛집 리뷰 목록 조회 ──────────────────────────────
+    public List<ReviewResponse> getReviewsByRestaurantId(Long restaurantId) {
+
+        List<ReviewResponse> reviews =
+                reviewDao.findByRestaurantId(restaurantId);
+
+        // 각 리뷰에 이미지, 태그 세팅
+        for (ReviewResponse review : reviews) {
+            review.setImageUrls(
+                    reviewDao.findImageUrlsByReviewId(review.getId())
+            );
+            review.setSituations(
+                    reviewDao.findSituationsByReviewId(review.getId())
+            );
+        }
+
+        return reviews;
     }
 
 }

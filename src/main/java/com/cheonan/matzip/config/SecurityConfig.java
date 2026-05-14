@@ -54,6 +54,9 @@ public class SecurityConfig {
                         .requestMatchers("/admin/login").permitAll()
 //                        .requestMatchers("/admin/**").hasRole("ADMIN")
 
+                        // 리뷰 목록 조회
+                        .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
+
                         .anyRequest().permitAll()
                 )
 

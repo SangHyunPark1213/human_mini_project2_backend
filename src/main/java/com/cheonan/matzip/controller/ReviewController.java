@@ -1,6 +1,7 @@
 package com.cheonan.matzip.controller;
 
 import com.cheonan.matzip.dto.request.ReviewRequest;
+import com.cheonan.matzip.dto.response.ReviewResponse;
 import com.cheonan.matzip.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -77,4 +79,15 @@ public class ReviewController {
         );
         return ResponseEntity.ok(Map.of("action", result));
     }
+
+    // ── 맛집 리뷰 목록 조회 ───────────────────────────────
+    // GET /api/reviews?restaurantId=1
+    @GetMapping
+    public ResponseEntity<List<ReviewResponse>> getReviews(
+            @RequestParam Long restaurantId) {
+
+        return ResponseEntity.ok(reviewService.getReviewsByRestaurantId(restaurantId)
+        );
+    }
+
 }

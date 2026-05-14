@@ -2,6 +2,7 @@ package com.cheonan.matzip.dao;
 
 import com.cheonan.matzip.dto.request.ReviewRequest;
 import com.cheonan.matzip.dto.response.ReceiptListResponse;
+import com.cheonan.matzip.dto.response.ReviewResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -173,6 +174,45 @@ public class ReviewDao {
     public void updateVerificationStatus(Long reviewId, String status) {
         String sql = "UPDATE REVIEW SET verification_status = ? WHERE id = ?";
         jdbcTemplate.update(sql, status, reviewId);
+    }
+
+    // ── 맛집 리뷰 목록 전체 조회 ─────────────────────────
+    public List<ReviewResponse> findByRestaurantId(Long restaurantId) {
+
+        String sql = "SELECT r.id, r.rating, r.content, r.created_at, "
+                + "       r.helpful_count, r.verification_status, "
+                + "       m.nickname "
+                + "FROM REVIEW r "
+                + "JOIN MEMBER m ON r.member_id = m.id "
+                + "WHERE r.restaurant_id = ? "
+                + "ORDER BY r.created_at DESC";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) ->
+                        ReviewResponse.of(
+                                rs.getLong("id"),
+                                rs.getInt("rating"),
+                                rs.getString("content"),
+                                rs.getTimestamp("created_at") != null
+                                        ? rs.getTimestamp("created_at").toLocalDateTime()
+                                        : null,
+                                rs.getString("nickname"),
+                                rs.getInt("helpful_count"),
+                                rs.getString("verification_status")
+                        ),
+                restaurantId
+        );
+    }
+
+    // ── 리뷰 이미지 목록 조회 ────────────────────────────
+    public List<String> findImageUrlsByReviewId(Long reviewId) {
+        String sql = "SELECT image_url FROM REVIEW_IMAGE WHERE review_id = ?";
+        return jdbcTemplate.queryForList(sql, String.class, reviewId);
+    }
+
+    // ── 리뷰 태그 목록 조회 ──────────────────────────────
+    public List<String> findSituationsByReviewId(Long reviewId) {
+        String sql = "SELECT situation FROM REVIEW_SITUATION WHERE review_id = ?";
+        return jdbcTemplate.queryForList(sql, String.class, reviewId);
     }
 
 }
