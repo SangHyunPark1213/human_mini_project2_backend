@@ -54,6 +54,11 @@ public class AdminController {
         return "admin/index";
     }
 
+    @GetMapping("/restaurants")
+    public String restaurantList() {
+        return "admin/restaurant-list";
+    }
+
     // ── 맛집 등록 ─────────────────────────────────
     @PostMapping("/restaurants")
     public String createRestaurant(RestaurantCreateRequest request) {
