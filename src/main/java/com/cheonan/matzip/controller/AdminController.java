@@ -70,7 +70,11 @@ public class AdminController {
     @GetMapping("/receipt-list")
     public String receiptList(Model model) {
         List<ReceiptListResponse> receipts = reviewService.getReceiptList();
+        List<ReceiptListResponse> processedReceipts = reviewService.getProcessedReceiptList();
+
         model.addAttribute("receipts", receipts);
+        model.addAttribute("processedReceipts", processedReceipts);
+
         return "admin/receipt-list";
     }
 

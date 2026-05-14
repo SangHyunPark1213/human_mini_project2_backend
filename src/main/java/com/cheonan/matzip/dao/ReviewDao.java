@@ -150,6 +150,7 @@ public class ReviewDao {
             JOIN MEMBER m ON r.member_id = m.id
             JOIN RESTAURANT rs ON r.restaurant_id = rs.id
             WHERE r.receipt_url IS NOT NULL
+                      AND r.verification_status = 'N'
             ORDER BY r.created_at DESC
             """;
 
@@ -173,6 +174,37 @@ public class ReviewDao {
     public void updateVerificationStatus(Long reviewId, String status) {
         String sql = "UPDATE REVIEW SET verification_status = ? WHERE id = ?";
         jdbcTemplate.update(sql, status, reviewId);
+    }
+
+    public List<ReceiptListResponse> findProcessedReceipts() {
+        String sql = """
+        SELECT r.id, r.content, r.rating,
+               r.verification_status, r.receipt_url,
+               r.created_at,
+               m.nickname,
+               rs.name AS restaurant_name
+        FROM REVIEW r
+        JOIN MEMBER m ON r.member_id = m.id
+        JOIN RESTAURANT rs ON r.restaurant_id = rs.id
+        WHERE r.receipt_url IS NOT NULL
+        AND r.verification_status IN ('A', 'R')
+        ORDER BY r.created_at DESC
+        """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) ->
+                ReceiptListResponse.from(
+                        rs.getLong("id"),
+                        rs.getString("content"),
+                        rs.getInt("rating"),
+                        rs.getString("verification_status"),
+                        rs.getString("receipt_url"),
+                        rs.getTimestamp("created_at") != null
+                                ? rs.getTimestamp("created_at").toLocalDateTime()
+                                : null,
+                        rs.getString("nickname"),
+                        rs.getString("restaurant_name")
+                )
+        );
     }
 
 }

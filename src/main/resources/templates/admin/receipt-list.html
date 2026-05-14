@@ -31,6 +31,13 @@
             font-weight: 900;
         }
 
+        .sub-title {
+            font-size: 30px;
+            color: #333;
+            font-weight: 900;
+            margin: 0;
+        }
+
         .back {
             text-decoration: none;
             color: #333;
@@ -78,6 +85,18 @@
             font-weight: 700;
         }
 
+        .status.waiting {
+            background: #2dbb6f;
+        }
+
+        .status.approved {
+            background: #2dbb6f;
+        }
+
+        .status.rejected {
+            background: #ff5a4d;
+        }
+
         .open-btn {
             border: none;
             background: #ff6b3d;
@@ -92,6 +111,14 @@
             padding: 60px;
             text-align: center;
             color: #9ca3af;
+        }
+
+        .processed-section {
+            margin-top: 60px;
+        }
+
+        .processed-top {
+            margin-bottom: 20px;
         }
 
         .modal-bg {
@@ -183,11 +210,20 @@
         }
 
         .modal-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            padding: 0 32px 32px;
-        }
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 0 32px 32px;
+}
+
+.modal-actions form {
+    width: 180px;
+}
+
+.approve-btn,
+.cancel-btn {
+    width: 100%;
+}
 
         .approve-btn {
             border: none;
@@ -236,14 +272,11 @@
             <tbody>
             <tr th:each="receipt, stat : ${receipts}">
                 <td th:text="${stat.count}">1</td>
-                <td th:text="${receipt.restaurantName}">청담 한정식</td>
-                <td th:text="${receipt.nickname}">김맛집</td>
+                <td th:text="${receipt.restaurantName}">청담 중식</td>
+                <td th:text="${receipt.nickname}">맛집러3</td>
                 <td th:text="${receipt.rating}">5</td>
                 <td>
-                    <span class="status"
-                          th:text="${receipt.verificationStatus == 'Y' ? '승인' : (receipt.verificationStatus == 'R' ? '거절' : '대기')}">
-                        대기
-                    </span>
+                    <span class="status waiting">대기</span>
                 </td>
                 <td>
                     <button class="open-btn"
@@ -267,6 +300,61 @@
             승인 대기 중인 영수증이 없습니다.
         </div>
     </div>
+
+    <div class="processed-section">
+        <div class="top processed-top">
+            <h1 class="sub-title">처리 완료된 영수증 목록</h1>
+        </div>
+
+        <div class="table-box">
+            <table th:if="${!#lists.isEmpty(processedReceipts)}">
+                <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>식당명</th>
+                    <th>작성자</th>
+                    <th>별점</th>
+                    <th>상태</th>
+                    <th>확인</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="receipt, stat : ${processedReceipts}">
+                    <td th:text="${stat.count}">1</td>
+                    <td th:text="${receipt.restaurantName}">청담 중식</td>
+                    <td th:text="${receipt.nickname}">맛집러3</td>
+                    <td th:text="${receipt.rating}">5</td>
+                    <td>
+                        <span class="status"
+                              th:classappend="${receipt.verificationStatus == 'A'} ? ' approved' : ' rejected'"
+                              th:text="${receipt.verificationStatus == 'A' ? '승인' : '거절'}">
+                            승인
+                        </span>
+                    </td>
+                    <td>
+                        <button class="open-btn"
+                                type="button"
+                                th:attr="
+                                data-review-id=${receipt.id},
+                                data-restaurant-name=${receipt.restaurantName},
+                                data-member-nickname=${receipt.nickname},
+                                data-rating=${receipt.rating},
+                                data-content=${receipt.content},
+                                data-receipt-url=${receipt.receiptUrl}"
+                                onclick="openReceiptModal(this)">
+                            상세 확인
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="empty" th:if="${#lists.isEmpty(processedReceipts)}">
+                처리 완료된 영수증이 없습니다.
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal-bg" id="receiptModal">
@@ -281,10 +369,10 @@
 
             <div>
                 <div class="info-label">식당명</div>
-                <div class="restaurant-name" id="modalRestaurantName">청담 한정식</div>
+                <div class="restaurant-name" id="modalRestaurantName">청담 중식</div>
 
                 <div class="info-label">작성자</div>
-                <div class="info-value" id="modalMemberNickname">김맛집</div>
+                <div class="info-value" id="modalMemberNickname">맛집러3</div>
 
                 <div class="info-label">별점</div>
                 <div class="info-value" id="modalRating">5</div>

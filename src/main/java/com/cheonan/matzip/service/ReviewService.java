@@ -122,6 +122,11 @@ public class ReviewService {
     // ── 영수증 거절 ───────────────────────────────────
     public void rejectReceipt(Long reviewId) {
         reviewDao.updateVerificationStatus(reviewId, "R");
+
+    }
+
+    public List<ReceiptListResponse> getProcessedReceiptList() {
+        return reviewDao.findProcessedReceipts();
     }
 
 }
