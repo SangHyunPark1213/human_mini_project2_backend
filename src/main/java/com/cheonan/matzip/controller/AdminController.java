@@ -63,4 +63,9 @@ public class AdminController {
         restaurantService.create(request);
         return "redirect:/admin";
     }
+
+    @GetMapping("/restaurants")
+    public String restaurantList() {
+        return "admin/restaurant-list";
+    }
 }
