@@ -55,7 +55,9 @@ public class AdminController {
     }
 
     @GetMapping("/restaurants")
-    public String restaurantList() {
+    public String restaurantList(Model model) {
+        model.addAttribute("kakaoMapKey", kakaoMapKey);
+        // 만약 리스트 화면에서도 파이어베이스 설정이 필요하다면 여기에 추가로 addAttribute 하세요.
         return "admin/restaurant-list";
     }
 
@@ -70,7 +72,11 @@ public class AdminController {
     @GetMapping("/receipt-list")
     public String receiptList(Model model) {
         List<ReceiptListResponse> receipts = reviewService.getReceiptList();
+        List<ReceiptListResponse> processedReceipts = reviewService.getProcessedReceiptList();
+
         model.addAttribute("receipts", receipts);
+        model.addAttribute("processedReceipts", processedReceipts);
+
         return "admin/receipt-list";
     }
 

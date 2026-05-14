@@ -2,7 +2,6 @@ package com.cheonan.matzip.dao;
 
 import com.cheonan.matzip.dto.request.ReviewRequest;
 import com.cheonan.matzip.dto.response.ReceiptListResponse;
-import com.cheonan.matzip.dto.response.ReviewResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -24,12 +23,10 @@ public class ReviewDao {
     // ── 리뷰 등록 ────────────────────────────────────────
     public Long insertReview(ReviewRequest req) {
 
-        // ① NEXTVAL 먼저 채번
         Long reviewId = jdbcTemplate.queryForObject(
                 "SELECT REVIEW_SEQ.NEXTVAL FROM DUAL", Long.class
         );
 
-        // ② 채번된 ID로 INSERT
         String sql = "INSERT INTO REVIEW(id, restaurant_id, member_id, rating, content, revisit, receipt_url) "
                 + "VALUES(?, ?, ?, ?, ?, ?, ?)";
 
@@ -51,8 +48,10 @@ public class ReviewDao {
         String sql = "UPDATE REVIEW SET rating = ?, content = ?, revisit = ?, "
                 + "receipt_url = ? WHERE id = ?";
         jdbcTemplate.update(sql,
-                req.getRating(), req.getContent(),
-                req.getRevisit(), req.getReceiptUrl(),
+                req.getRating(),
+                req.getContent(),
+                req.getRevisit(),
+                req.getReceiptUrl(),
                 reviewId
         );
     }
@@ -63,8 +62,6 @@ public class ReviewDao {
     }
 
     // ── 이미지 등록 ──────────────────────────────────────
-    // ✅ REVIEW_FOOD_IMAGE → REVIEW_IMAGE
-    // ✅ food_image_url    → image_url
     public void insertReviewImage(Long reviewId, String imageUrl) {
         String sql = "INSERT INTO REVIEW_IMAGE(id, review_id, image_url) "
                 + "VALUES (REVIEW_IMAGE_SEQ.NEXTVAL, ?, ?)";
@@ -72,7 +69,6 @@ public class ReviewDao {
     }
 
     // ── 이미지 전체 삭제 (수정 시 재등록용) ──────────────
-    // ✅ REVIEW_FOOD_IMAGE → REVIEW_IMAGE
     public void deleteReviewImages(Long reviewId) {
         jdbcTemplate.update(
                 "DELETE FROM REVIEW_IMAGE WHERE review_id = ?", reviewId
@@ -119,6 +115,7 @@ public class ReviewDao {
                 "INSERT INTO " + tableName + "(review_id, member_id) VALUES(?, ?)",
                 reviewId, memberId
         );
+
         jdbcTemplate.update(
                 "UPDATE REVIEW SET " + updateCol + " = " + updateCol + " + 1 WHERE id = ?",
                 reviewId
@@ -134,25 +131,28 @@ public class ReviewDao {
                 "DELETE FROM " + tableName + " WHERE review_id = ? AND member_id = ?",
                 reviewId, memberId
         );
+
         jdbcTemplate.update(
                 "UPDATE REVIEW SET " + updateCol + " = " + updateCol + " - 1 WHERE id = ?",
                 reviewId
         );
     }
 
+    // ── 승인 대기 중인 영수증 목록 조회 ───────────────────
     public List<ReceiptListResponse> findAllWithReceipt() {
         String sql = """
-            SELECT r.id, r.content, r.rating,
-                   r.verification_status, r.receipt_url,
-                   r.created_at,
-                   m.nickname,
-                   rs.name AS restaurant_name
-            FROM REVIEW r
-            JOIN MEMBER m ON r.member_id = m.id
-            JOIN RESTAURANT rs ON r.restaurant_id = rs.id
-            WHERE r.receipt_url IS NOT NULL
-            ORDER BY r.created_at DESC
-            """;
+                SELECT r.id, r.content, r.rating,
+                       r.verification_status, r.receipt_url,
+                       r.created_at,
+                       m.nickname,
+                       rs.name AS restaurant_name
+                FROM REVIEW r
+                JOIN MEMBER m ON r.member_id = m.id
+                JOIN RESTAURANT rs ON r.restaurant_id = rs.id
+                WHERE r.receipt_url IS NOT NULL
+                AND r.verification_status = 'N'
+                ORDER BY r.created_at DESC
+                """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) ->
                 ReceiptListResponse.from(
@@ -176,30 +176,35 @@ public class ReviewDao {
         jdbcTemplate.update(sql, status, reviewId);
     }
 
-    // ── 맛집 리뷰 목록 전체 조회 ─────────────────────────
-    public List<ReviewResponse> findByRestaurantId(Long restaurantId) {
-
-        String sql = "SELECT r.id, r.rating, r.content, r.created_at, "
-                + "       r.helpful_count, r.verification_status, "
-                + "       m.nickname "
-                + "FROM REVIEW r "
-                + "JOIN MEMBER m ON r.member_id = m.id "
-                + "WHERE r.restaurant_id = ? "
-                + "ORDER BY r.created_at DESC";
+    // ── 승인/거절 처리된 영수증 목록 조회 ───────────────
+    public List<ReceiptListResponse> findProcessedReceipts() {
+        String sql = """
+                SELECT r.id, r.content, r.rating,
+                       r.verification_status, r.receipt_url,
+                       r.created_at,
+                       m.nickname,
+                       rs.name AS restaurant_name
+                FROM REVIEW r
+                JOIN MEMBER m ON r.member_id = m.id
+                JOIN RESTAURANT rs ON r.restaurant_id = rs.id
+                WHERE r.receipt_url IS NOT NULL
+                AND r.verification_status IN ('A', 'R')
+                ORDER BY r.created_at DESC
+                """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) ->
-                        ReviewResponse.of(
-                                rs.getLong("id"),
-                                rs.getInt("rating"),
-                                rs.getString("content"),
-                                rs.getTimestamp("created_at") != null
-                                        ? rs.getTimestamp("created_at").toLocalDateTime()
-                                        : null,
-                                rs.getString("nickname"),
-                                rs.getInt("helpful_count"),
-                                rs.getString("verification_status")
-                        ),
-                restaurantId
+                ReceiptListResponse.from(
+                        rs.getLong("id"),
+                        rs.getString("content"),
+                        rs.getInt("rating"),
+                        rs.getString("verification_status"),
+                        rs.getString("receipt_url"),
+                        rs.getTimestamp("created_at") != null
+                                ? rs.getTimestamp("created_at").toLocalDateTime()
+                                : null,
+                        rs.getString("nickname"),
+                        rs.getString("restaurant_name")
+                )
         );
     }
 
@@ -214,5 +219,4 @@ public class ReviewDao {
         String sql = "SELECT situation FROM REVIEW_SITUATION WHERE review_id = ?";
         return jdbcTemplate.queryForList(sql, String.class, reviewId);
     }
-
 }
