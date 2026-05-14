@@ -128,5 +128,5 @@ public class ReviewService {
     public List<ReceiptListResponse> getProcessedReceiptList() {
         return reviewDao.findProcessedReceipts();
     }
-
+//
 }
