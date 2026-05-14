@@ -86,8 +86,8 @@ public class ReviewController {
     public ResponseEntity<List<ReviewResponse>> getReviews(
             @RequestParam Long restaurantId) {
 
-        return ResponseEntity.ok(reviewService.getReviewsByRestaurantId(restaurantId)
+        return ResponseEntity.ok(
+                reviewService.getReviewsByRestaurantId(restaurantId)
         );
     }
-
 }
