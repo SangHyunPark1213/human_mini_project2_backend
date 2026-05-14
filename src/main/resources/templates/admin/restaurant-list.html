@@ -84,6 +84,21 @@
         /* 수정끝 */
 
         .no-results { text-align: center; padding: 50px; color: #999; }
+
+        .admin-back-btn {
+    text-decoration: none;
+    color: #333;
+    background: white;
+    border: 1px solid #e5e7eb;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-weight: 700;
+    transition: 0.2s;
+}
+
+.admin-back-btn:hover {
+    background: #f8f8f8;
+}
     </style>
 </head>
 <body>
@@ -91,6 +106,10 @@
 <div class="container">
     <div class="header">
         <h1>맛집 목록 관리</h1>
+
+        <a href="/admin" class="admin-back-btn">
+            관리자 메인
+        </a>
     </div>
 
     <div class="filter-section">
