@@ -46,9 +46,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
 
                         // 맛집 등록/수정/삭제 (ADMIN만 가능)
-                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").permitAll()
 
                         // Admin 페이지
                         .requestMatchers("/admin/login").permitAll()
