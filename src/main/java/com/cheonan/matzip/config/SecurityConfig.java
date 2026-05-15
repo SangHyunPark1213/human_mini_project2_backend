@@ -31,10 +31,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // ① CSRF 비활성화 (REST API + React 환경)
+                // ① CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
 
-                // ② CORS 설정 (React ↔ Backend 통신 허용)
+                // ② CORS 설정
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // ③ 경로별 접근 제어
@@ -46,61 +46,51 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
 
                         // 맛집 등록/수정/삭제 (ADMIN만 가능)
-                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/restaurants/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/restaurants/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/restaurants/**").hasRole("ADMIN")
 
-                        // Admin 페이지
-                        .requestMatchers("/admin/login").permitAll()
-//                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // Admin 페이지 (ADMIN만 가능)
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                        // 리뷰 목록 조회
+                        // 리뷰 목록 조회 (누구나 가능)
                         .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
 
                         .anyRequest().permitAll()
                 )
 
-                // ④ Admin용 formLogin (Thymeleaf SSR)
-                .formLogin(form -> form
-                        .loginPage("/admin/login")           // 커스텀 로그인 페이지
-                        .loginProcessingUrl("/admin/login")  // POST 처리 URL
-                        .defaultSuccessUrl("/admin", true)
-                        .failureUrl("/admin/login?error=true")
-                        .permitAll()
-                )
-
-                // ⑤ 로그아웃 설정
+                // ④ 로그아웃 설정
                 .logout(logout -> logout
                         .logoutUrl("/admin/logout")
-                        .logoutSuccessUrl("/admin/login")
+                        .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                 )
 
-                // ⑥ 세션 관리
+                // ⑤ 세션 관리
                 .sessionManagement(session -> session
-                        .maximumSessions(1)          // 동시 로그인 1개 제한
-                        .maxSessionsPreventsLogin(false) // 새 로그인 시 기존 세션 만료
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
                 );
 
         return http.build();
     }
 
-    // ⑦ CORS 세부 설정
+    // ⑥ CORS 세부 설정
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000")); // React 주소
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true); // 세션 쿠키 허용 (필수)
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
 
-    // ⑧ AuthenticationManager (CustomUserDetailsService 연결)
+    // ⑦ AuthenticationManager
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http)
             throws Exception {
