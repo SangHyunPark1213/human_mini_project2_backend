@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>천안맛ZIP 관리자 페이지</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fff;
+            color: #333;
+        }
+
+        .hero {
+            width: 100%;
+            height: 420px;
+            background-image: url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600");
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                    to bottom,
+                    rgba(0, 0, 0, 0.35) 0%,
+                    rgba(255, 255, 255, 0.35) 45%,
+                    rgba(255, 255, 255, 1) 100%
+            );
+        }
+
+        .hero-overlay {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            padding-top: 145px;
+            text-align: center;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .hero-overlay h1 {
+            font-size: 46px;
+            font-weight: 900;
+            margin-bottom: 18px;
+            color: white;
+            text-shadow:
+                    0 2px 4px rgba(0, 0, 0, 0.5),
+                    0 6px 18px rgba(0, 0, 0, 0.45);
+        }
+
+        .hero-overlay p {
+            font-size: 18px;
+            margin-bottom: 36px;
+            font-weight: 600;
+            text-shadow:
+                    0 2px 4px rgba(0, 0, 0, 0.5),
+                    0 6px 18px rgba(0, 0, 0, 0.45);
+        }
+
+        .section-title {
+            display: flex;
+            flex-direction: column;
+            padding: 0 45px;
+            gap: 10px;
+            margin-top: 70px;
+            text-align: center;
+        }
+
+        .section-title p {
+            font-size: 26px;
+            font-weight: 900;
+            color: #333;
+            margin: 0;
+        }
+
+        .section-title span {
+            font-size: 15px;
+            color: #5b6475;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        .admin-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px 0;
+        }
+
+        .admin-card {
+            width: 260px;
+            min-height: 170px;
+            padding: 28px 30px;
+            border: 1px solid #bbbec4;
+            background-color: white;
+            cursor: pointer;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            color: #333;
+            box-sizing: border-box;
+            text-align: left;
+        }
+
+        .admin-card strong {
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .admin-card span {
+            font-size: 15px;
+            color: #5b6475;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        .user-page-container {
+            width: 860px;
+            margin: 28px auto 0;
+        }
+
+        .user-page-card {
+            width: 100%;
+            min-height: 105px;
+            padding: 24px 30px;
+            border: 1px solid #bbbec4;
+            background-color: white;
+            cursor: pointer;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #333;
+            box-sizing: border-box;
+        }
+
+        .user-page-card strong {
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .user-page-card span {
+            font-size: 15px;
+            color: #5b6475;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        .modal-bg {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-bg.active {
+            display: flex;
+        }
+
+        .modal-box {
+            width: 820px;
+            max-height: 88vh;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 36px 42px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            border: none;
+            background: none;
+            font-size: 32px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .modal-box h2 {
+            font-size: 26px;
+            font-weight: 900;
+            color: #333;
+            margin: 0 0 8px;
+        }
+
+        .modal-desc {
+            color: #5b6475;
+            font-size: 15px;
+            margin-bottom: 28px;
+        }
+
+        .modal-box label {
+            display: block;
+            font-size: 15px;
+            font-weight: 700;
+            color: #333;
+            margin: 18px 0 8px;
+        }
+
+        .modal-box input,
+        .modal-box select {
+            width: 100%;
+            height: 50px;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 0 16px;
+            font-size: 15px;
+            color: #333;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .modal-box input::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .form-row > div {
+            flex: 1;
+        }
+
+        .map-box {
+            width: 100%;
+            height: 320px;
+            border-radius: 16px;
+            margin-top: 12px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            background: #f3f4f6;
+        }
+
+        .hint {
+            margin-top: 8px;
+            color: #5b6475;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .preview-img {
+            width: 100%;
+            max-height: 220px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .modal-button-box {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .cancel-btn,
+        .submit-btn {
+            height: 48px;
+            padding: 0 28px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .cancel-btn {
+            border: 1px solid #e5e7eb;
+            background: white;
+            color: #333;
+        }
+
+        .submit-btn {
+            border: none;
+            background-color: #ff6b3d;
+            color: white;
+        }
+
+        .submit-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<section class="hero">
+    <div class="hero-overlay">
+        <h1>천안맛ZIP 관리자</h1>
+        <p>천안 내 상황에 딱 맞는 진짜 맛집을 관리하세요</p>
+    </div>
+</section>
+
+<section class="section-title">
+    <p>관리 메뉴</p>
+    <span>맛집 정보 등록과 목록 관리를 진행할 수 있습니다.</span>
+</section>
+
+<section class="admin-container">
+    <button class="admin-card" type="button" onclick="openRestaurantModal()">
+        <strong>맛집 등록</strong>
+        <span>지도에서 위치를 선택하고 대표 사진을 업로드해 맛집을 등록합니다.</span>
+    </button>
+
+    <a class="admin-card" href="/admin/restaurants">
+        <strong>맛집 목록 관리</strong>
+        <span>등록된 맛집 정보를 확인하고 수정 또는 삭제합니다.</span>
+    </a>
+
+    <a class="admin-card" href="/admin/receipt-list">
+        <strong>영수증 승인</strong>
+        <span>사용자가 등록한 영수증 사진을 확인하고 리뷰 인증 상태를 승인합니다.</span>
+    </a>
+</section>
+
+<section class="user-page-container">
+    <a class="user-page-card" href="http://192.168.0.169:3000/">
+        <strong>사용자 페이지로 이동</strong>
+        <span>메인 페이지로 돌아가 실제 사용자 화면을 확인합니다.</span>
+    </a>
+</section>
+
+<div class="modal-bg" id="restaurantModal">
+    <div class="modal-box">
+        <button class="modal-close" type="button" onclick="closeRestaurantModal()">×</button>
+
+        <h2>맛집 정보 입력</h2>
+        <p class="modal-desc">지도에서 위치를 클릭하고 대표 사진을 업로드해주세요.</p>
+
+        <form id="restaurantForm" action="/admin/restaurants" method="post" onsubmit="return handleRestaurantSubmit(event)">
+            <label>맛집 이름</label>
+            <input type="text" name="name" placeholder="예: 청담 한정식" required>
+
+            <label>주소</label>
+            <input type="text" name="address" placeholder="예: 충남 천안시 동남구 ..." required>
+
+            <div class="form-row">
+                <div>
+                    <label>전화번호</label>
+                    <input type="text" name="phone" placeholder="예: 041-111-2222">
+                </div>
+
+                <div>
+                    <label>카테고리</label>
+                    <select name="category" required>
+                        <option value="">카테고리 선택</option>
+                        <option value="한식">한식</option>
+                        <option value="중식">중식</option>
+                        <option value="일식">일식</option>
+                        <option value="양식">양식</option>
+                        <option value="카페">카페</option>
+                        <option value="술집">술집</option>
+                        <option value="디저트">디저트</option>
+                        <option value="패스트푸드">패스트푸드</option>
+                    </select>
+                </div>
+            </div>
+
+            <label>지도에서 위치 선택</label>
+            <div id="map" class="map-box"></div>
+            <div class="hint">지도를 클릭해 맛집 위치를 지정해주세요.</div>
+
+            <input type="hidden" name="latitude" id="latitude" required>
+            <input type="hidden" name="longitude" id="longitude" required>
+
+            <label>대표 사진 업로드</label>
+            <input type="file" id="thumbnailFile" accept="image/*">
+            <input type="hidden" name="thumbnail" id="thumbnail">
+            <img id="thumbnailPreview" class="preview-img" alt="대표 사진 미리보기">
+
+            <label>인기 메뉴</label>
+            <input type="text" name="popularMenu" placeholder="예: 전복죽, 갈비찜">
+
+            <div class="modal-button-box">
+                <button class="cancel-btn" type="button" onclick="closeRestaurantModal()">취소</button>
+                <button class="submit-btn" type="submit">등록하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js'(appkey=${kakaoMapKey})}"></script>
+
+<script type="module" th:inline="javascript">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: /*[[${firebaseApiKey}]]*/ "",
+        authDomain: /*[[${firebaseAuthDomain}]]*/ "",
+        projectId: /*[[${firebaseProjectId}]]*/ "",
+        storageBucket: /*[[${firebaseStorageBucket}]]*/ "",
+        messagingSenderId: /*[[${firebaseMessagingSenderId}]]*/ "",
+        appId: /*[[${firebaseAppId}]]*/ ""
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    let restaurantMap = null;
+    let restaurantMarker = null;
+
+    window.openRestaurantModal = function () {
+        document.getElementById("restaurantModal").classList.add("active");
+
+        setTimeout(() => {
+            initRestaurantMap();
+        }, 300);
+    };
+
+    window.closeRestaurantModal = function () {
+        document.getElementById("restaurantModal").classList.remove("active");
+
+        const form = document.getElementById("restaurantForm");
+        form.reset();
+
+        document.getElementById("thumbnail").value = "";
+
+        const preview = document.getElementById("thumbnailPreview");
+        preview.src = "";
+        preview.style.display = "none";
+
+        document.getElementById("latitude").value = "";
+        document.getElementById("longitude").value = "";
+    };
+
+    window.initRestaurantMap = function () {
+        if (!window.kakao || !window.kakao.maps) {
+            alert("카카오맵 SDK가 로드되지 않았습니다. 카카오 개발자 JavaScript SDK 도메인에 http://localhost:8111 등록을 확인하세요.");
+            return;
+        }
+
+        const container = document.getElementById("map");
+
+        const defaultLat = 36.8151290;
+        const defaultLng = 127.1138930;
+        const defaultPosition = new kakao.maps.LatLng(defaultLat, defaultLng);
+
+        if (!restaurantMap) {
+            restaurantMap = new kakao.maps.Map(container, {
+                center: defaultPosition,
+                level: 4
+            });
+
+            restaurantMarker = new kakao.maps.Marker({
+                position: defaultPosition,
+                map: restaurantMap
+            });
+
+            kakao.maps.event.addListener(restaurantMap, "click", function (mouseEvent) {
+                const latlng = mouseEvent.latLng;
+
+                restaurantMarker.setPosition(latlng);
+
+                document.getElementById("latitude").value = latlng.getLat().toFixed(7);
+                document.getElementById("longitude").value = latlng.getLng().toFixed(7);
+            });
+        }
+
+        restaurantMap.relayout();
+        restaurantMap.setCenter(defaultPosition);
+    };
+
+    window.uploadThumbnailToFirebase = async function () {
+        const fileInput = document.getElementById("thumbnailFile");
+        const file = fileInput.files[0];
+
+        if (!file) return true;
+
+        const fileName = `restaurants/${Date.now()}_${file.name}`;
+        const storageRef = ref(storage, fileName);
+
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+
+        document.getElementById("thumbnail").value = url;
+        return true;
+    };
+
+    window.handleRestaurantSubmit = async function (event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const submitButton = form.querySelector(".submit-btn");
+
+        const lat = document.getElementById("latitude").value;
+const lng = document.getElementById("longitude").value;
+
+if (!lat || !lng) {
+    alert("지도에서 맛집 위치를 선택해주세요.");
+    return false;
+}
+
+        submitButton.disabled = true;
+        submitButton.textContent = "등록 중...";
+
+        try {
+            await window.uploadThumbnailToFirebase();
+            form.submit();
+        } catch (error) {
+            console.error(error);
+            alert("대표 사진 업로드에 실패했습니다. Firebase Storage 규칙을 확인하세요.");
+
+            submitButton.disabled = false;
+            submitButton.textContent = "등록하기";
+        }
+
+        return false;
+    };
+
+    document.getElementById("thumbnailFile").addEventListener("change", function () {
+        const file = this.files[0];
+        const preview = document.getElementById("thumbnailPreview");
+
+        if (!file) {
+            preview.style.display = "none";
+            preview.src = "";
+            return;
+        }
+
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+    });
+</script>
+
+</body>
+</html>

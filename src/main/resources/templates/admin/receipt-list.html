@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>영수증 승인</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f7f8fb;
+            color: #333;
+        }
+
+        .page {
+            width: 1100px;
+            margin: 60px auto;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #ff6b3d;
+            margin: 0;
+            font-weight: 900;
+        }
+
+        .sub-title {
+            font-size: 30px;
+            color: #333;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .back {
+            text-decoration: none;
+            color: #333;
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 12px 20px;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
+        .table-box {
+            background: white;
+            border: 1px solid #e1e8f3;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f3f4f6;
+            color: #6b7280;
+            font-size: 14px;
+            padding: 18px;
+            text-align: left;
+        }
+
+        td {
+            padding: 18px;
+            border-top: 1px solid #eef0f4;
+            font-size: 15px;
+        }
+
+        .status {
+            display: inline-block;
+            background: #2dbb6f;
+            color: white;
+            border-radius: 999px;
+            padding: 7px 13px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .status.waiting {
+            background: #2dbb6f;
+        }
+
+        .status.approved {
+            background: #2dbb6f;
+        }
+
+        .status.rejected {
+            background: #ff5a4d;
+        }
+
+        .open-btn {
+            border: none;
+            background: #ff6b3d;
+            color: white;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .empty {
+            padding: 60px;
+            text-align: center;
+            color: #9ca3af;
+        }
+
+        .processed-section {
+            margin-top: 60px;
+        }
+
+        .processed-top {
+            margin-bottom: 20px;
+        }
+
+        .modal-bg {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 41, 59, 0.65);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-bg.active {
+            display: flex;
+        }
+
+        .modal-box {
+            width: 760px;
+            background: white;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(0,0,0,0.28);
+        }
+
+        .modal-head {
+            padding: 24px 32px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-head h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .close-btn {
+            border: none;
+            background: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .modal-body {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 30px;
+            padding: 32px;
+        }
+
+        .receipt-img {
+            width: 320px;
+            height: 390px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            background: #f3f4f6;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .restaurant-name {
+            color: #ff6b3d;
+            font-size: 30px;
+            font-weight: 900;
+            margin: 6px 0 20px;
+        }
+
+        .review-content {
+            background: #f3f4f6;
+            padding: 16px;
+            border-radius: 12px;
+            line-height: 1.6;
+            color: #5b6475;
+            margin-top: 8px;
+        }
+
+        .modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 0 32px 32px;
+}
+
+.modal-actions form {
+    width: 180px;
+}
+
+.approve-btn,
+.cancel-btn {
+    width: 100%;
+}
+
+        .approve-btn {
+            border: none;
+            background: #2dbb6f;
+            color: white;
+            border-radius: 12px;
+            height: 54px;
+            font-size: 17px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .cancel-btn {
+            border: none;
+            background: #ff5a4d;
+            color: white;
+            border-radius: 12px;
+            height: 54px;
+            font-size: 17px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+    <div class="top">
+        <h1>영수증 승인 관리</h1>
+        <a class="back" href="/admin">관리자 메인</a>
+    </div>
+
+    <div class="table-box">
+        <table th:if="${!#lists.isEmpty(receipts)}">
+            <thead>
+            <tr>
+                <th>번호</th>
+                <th>식당명</th>
+                <th>작성자</th>
+                <th>별점</th>
+                <th>상태</th>
+                <th>확인</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="receipt, stat : ${receipts}">
+                <td th:text="${stat.count}">1</td>
+                <td th:text="${receipt.restaurantName}">청담 중식</td>
+                <td th:text="${receipt.nickname}">맛집러3</td>
+                <td th:text="${receipt.rating}">5</td>
+                <td>
+                    <span class="status waiting">대기</span>
+                </td>
+                <td>
+                    <button class="open-btn"
+                            type="button"
+                            th:attr="
+                            data-review-id=${receipt.id},
+                            data-restaurant-name=${receipt.restaurantName},
+                            data-member-nickname=${receipt.nickname},
+                            data-rating=${receipt.rating},
+                            data-content=${receipt.content},
+                            data-receipt-url=${receipt.receiptUrl}"
+                            onclick="openReceiptModal(this)">
+                        상세 확인
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="empty" th:if="${#lists.isEmpty(receipts)}">
+            승인 대기 중인 영수증이 없습니다.
+        </div>
+    </div>
+
+    <div class="processed-section">
+        <div class="top processed-top">
+            <h1 class="sub-title">처리 완료된 영수증 목록</h1>
+        </div>
+
+        <div class="table-box">
+            <table th:if="${!#lists.isEmpty(processedReceipts)}">
+                <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>식당명</th>
+                    <th>작성자</th>
+                    <th>별점</th>
+                    <th>상태</th>
+                    <th>확인</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="receipt, stat : ${processedReceipts}">
+                    <td th:text="${stat.count}">1</td>
+                    <td th:text="${receipt.restaurantName}">청담 중식</td>
+                    <td th:text="${receipt.nickname}">맛집러3</td>
+                    <td th:text="${receipt.rating}">5</td>
+                    <td>
+                        <span class="status"
+                              th:classappend="${receipt.verificationStatus == 'A'} ? ' approved' : ' rejected'"
+                              th:text="${receipt.verificationStatus == 'A' ? '승인' : '거절'}">
+                            승인
+                        </span>
+                    </td>
+                    <td>
+                        <button class="open-btn"
+                                type="button"
+                                th:attr="
+                                data-review-id=${receipt.id},
+                                data-restaurant-name=${receipt.restaurantName},
+                                data-member-nickname=${receipt.nickname},
+                                data-rating=${receipt.rating},
+                                data-content=${receipt.content},
+                                data-receipt-url=${receipt.receiptUrl}"
+                                onclick="openReceiptModal(this)">
+                            상세 확인
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="empty" th:if="${#lists.isEmpty(processedReceipts)}">
+                처리 완료된 영수증이 없습니다.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-bg" id="receiptModal">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h2>영수증 상세 확인</h2>
+            <button class="close-btn" type="button" onclick="closeReceiptModal()">×</button>
+        </div>
+
+        <div class="modal-body">
+            <img class="receipt-img" id="modalReceiptImg" src="" alt="영수증 이미지">
+
+            <div>
+                <div class="info-label">식당명</div>
+                <div class="restaurant-name" id="modalRestaurantName">청담 중식</div>
+
+                <div class="info-label">작성자</div>
+                <div class="info-value" id="modalMemberNickname">맛집러3</div>
+
+                <div class="info-label">별점</div>
+                <div class="info-value" id="modalRating">5</div>
+
+                <div class="info-label">리뷰 내용</div>
+                <div class="review-content" id="modalContent">
+                    리뷰 내용이 표시됩니다.
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <form id="approveForm" method="post">
+                <button class="approve-btn" type="submit">승인하기</button>
+            </form>
+
+            <form id="rejectForm" method="post">
+                <button class="cancel-btn" type="submit">거절하기</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openReceiptModal(button) {
+        const reviewId = button.dataset.reviewId;
+
+        document.getElementById("modalRestaurantName").textContent =
+            button.dataset.restaurantName;
+
+        document.getElementById("modalMemberNickname").textContent =
+            button.dataset.memberNickname;
+
+        document.getElementById("modalRating").textContent =
+            button.dataset.rating + "점";
+
+        document.getElementById("modalContent").textContent =
+            button.dataset.content || "작성된 리뷰 내용이 없습니다.";
+
+        document.getElementById("modalReceiptImg").src =
+            button.dataset.receiptUrl;
+
+        document.getElementById("approveForm").action =
+            "/admin/receipt-list/" + reviewId + "/approve";
+
+        document.getElementById("rejectForm").action =
+            "/admin/receipt-list/" + reviewId + "/reject";
+
+        document.getElementById("receiptModal").classList.add("active");
+    }
+
+    function closeReceiptModal() {
+        document.getElementById("receiptModal").classList.remove("active");
+    }
+</script>
+
+</body>
+</html>

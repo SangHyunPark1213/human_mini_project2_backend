@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>맛집 목록 관리 (모달 통합형)</title>
+    <style>
+        /* 기존 스타일 유지 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f5f5f5; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { font-size: 28px; color: #333; }
+
+        .filter-buttons { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        .filter-btn { padding: 10px 20px; border: none; border-radius: 20px; background-color: #f0f0f0; color: #666; cursor: pointer; }
+        .filter-btn.active { background-color: #ff6b35; color: white; }
+
+        .search-section { display: flex; gap: 10px; margin-bottom: 30px; }
+        .search-input { flex: 1; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; width: 100%; font-size: 14px; }
+        .search-select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+
+        .restaurant-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+        .restaurant-card { background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; }
+        .restaurant-card:hover { transform: translateY(-5px); }
+        .card-image { width: 100%; height: 220px; object-fit: cover; }
+        .card-content { padding: 20px; }
+        .category-badge { background-color: #ff6b35; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; margin-bottom: 10px; display: inline-block; }
+
+        /* --- 모달 스타일 --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 650px;
+            max-width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header-img { width: 100%; height: 250px; object-fit: cover; }
+        .modal-body { padding: 25px 35px; }
+        .close-btn { position: absolute; right: 20px; top: 15px; font-size: 30px; color: #666; cursor: pointer; z-index: 2100; font-weight: bold; }
+
+        .form-label { display: block; font-weight: 700; color: #333; margin-bottom: 8px; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        .form-row { display: flex; gap: 15px; margin-bottom: 20px; }
+        .form-row > div { flex: 1; }
+
+        .map-placeholder { width: 100%; height: 200px; background-color: #f9f9f9; border-radius: 12px; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .file-upload-box { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+
+        .view-menu-box {
+            background: #fffcf0;
+            border-left: 4px solid #ff6b35;
+            padding: 18px;
+            margin: 20px 0;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-group-right { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; }
+        .btn-cancel { background: white; border: 1px solid #ddd; color: #666; padding: 12px 30px; border-radius: 25px; font-weight: 600; cursor: pointer; }
+        .btn-submit { background: #ff6b35; border: none; color: white; padding: 12px 40px; border-radius: 25px; font-weight: 600; cursor: pointer; }
+
+        .no-results { text-align: center; padding: 50px; color: #999; }
+
+        .admin-back-btn {
+    text-decoration: none;
+    color: #333;
+    background: white;
+    border: 1px solid #e5e7eb;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-weight: 700;
+    transition: 0.2s;
+}
+
+.admin-back-btn:hover {
+    background: #f8f8f8;
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>맛집 목록 관리</h1>
+
+        <a href="/admin" class="admin-back-btn">
+            관리자 메인
+        </a>
+    </div>
+
+    <div class="filter-section">
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-category="전체">전체</button>
+            <button class="filter-btn" data-category="한식">한식</button>
+            <button class="filter-btn" data-category="중식">중식</button>
+            <button class="filter-btn" data-category="일식">일식</button>
+            <button class="filter-btn" data-category="양식">양식</button>
+            <button class="filter-btn" data-category="카페">카페</button>
+            <button class="filter-btn" data-category="술집">술집</button>
+            <button class="filter-btn" data-category="디저트">디저트</button>
+            <button class="filter-btn" data-category="패스트푸드">패스트푸드</button>
+        </div>
+    </div>
+
+    <div class="search-section">
+        <select class="search-select" id="searchType">
+            <option value="name">식당명</option>
+            <option value="address">주소</option>
+        </select>
+        <input type="text" class="search-input" id="searchInput" placeholder="검색어를 입력하세요">
+    </div>
+
+    <div class="restaurant-grid" id="restaurantGrid"></div>
+</div>
+
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+
+        <div id="viewMode">
+            <div id="viewContent"></div>
+        </div>
+
+        <div id="editMode" style="display: none; padding: 35px;">
+            <div style="margin-bottom: 25px;">
+                <h2 style="font-size: 24px; color: #333; margin-bottom: 5px;">맛집 정보 수정</h2>
+                <p style="font-size: 13px; color: #999;">지도에서 위치를 클릭하고 대표 사진을 업로드해주세요.</p>
+            </div>
+
+            <form id="editForm">
+                <input type="hidden" id="editId">
+
+                <div class="form-group">
+                    <label class="form-label">맛집 이름</label>
+                    <input type="text" id="editName" class="search-input" placeholder="예: 청담 한정식">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">주소</label>
+                    <input type="text" id="editAddress" class="search-input" placeholder="예: 충남 천안시 동남구 ...">
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label class="form-label">전화번호</label>
+                        <input type="text" id="editPhone" class="search-input" placeholder="예: 041-111-2222">
+                    </div>
+                    <div>
+                        <label class="form-label">카테고리</label>
+                        <select id="editCategory" class="search-select" style="width: 100%; height: 45px;">
+                            <option value="한식">한식</option>
+                            <option value="중식">중식</option>
+                            <option value="일식">일식</option>
+                            <option value="양식">양식</option>
+                            <option value="카페">카페</option>
+                            <option value="술집">술집</option>
+                            <option value="디저트">디저트</option>
+                            <option value="패스트푸드">패스트푸드</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">지도에서 위치 선택</label>
+                    <div id="map" class="map-placeholder"></div>
+                    <p style="font-size: 11px; color: #aaa; margin-top: 5px;">지도 클릭해 맛집 위치를 지정해주세요.</p>
+
+                    <input type="hidden" id="editLat">
+                    <input type="hidden" id="editLng">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="editPhoto">대표 사진 업로드</label>
+                    <input type="file" id="editPhoto" class="file-upload-box">
+                    <input type="hidden" id="editThumbnail">
+
+                    <div style="margin-top: 15px; text-align: center;">
+                        <img id="thumbnailPreview" src="" alt="대표 사진 미리보기"
+                             style="max-width: 100%; height: 250px; object-fit: cover; border-radius: 12px; display: none; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">인기 메뉴</label>
+                    <input type="text" id="editMenu" class="search-input" placeholder="예: 전복죽, 갈비찜">
+                </div>
+
+                <div class="btn-group-right">
+                    <button type="button" class="btn-cancel" onclick="toggleEditMode(false)">취소</button>
+                    <button type="button" class="btn-cancel" style="border-color: #fcc; color: #e74c3c;" onclick="window.deleteRestaurant()">삭제하기</button>
+                    <button type="submit" class="btn-submit" id="submitBtn">수정하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js'(appkey=${kakaoMapKey})}"></script>
+
+<script type="module" th:inline="javascript">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: /*[[${firebaseApiKey}]]*/ "",
+        authDomain: /*[[${firebaseAuthDomain}]]*/ "",
+        projectId: /*[[${firebaseProjectId}]]*/ "",
+        storageBucket: /*[[${firebaseStorageBucket}]]*/ "",
+        messagingSenderId: /*[[${firebaseMessagingSenderId}]]*/ "",
+        appId: /*[[${firebaseAppId}]]*/ ""
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    // 전역 변수 설정 (기존 로직 유지 + Firebase storage 접근 권한)
+    window.appStorage = storage;
+    window.uploadBytes = uploadBytes;
+    window.getDownloadURL = getDownloadURL;
+    window.storageRef = ref;
+</script>
+
+<script>
+    //변수
+    let restaurantData = [];
+    let currentCategory = '전체';
+    let currentData = null;
+    let searchKeyword = '';
+
+    //데이터 로드 함수
+    async function loadDataFromServer() {
+        try {
+            let url = `/api/restaurants`;
+            if (currentCategory !== '전체') url += `?category=${encodeURIComponent(currentCategory)}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('로드 실패');
+            restaurantData = await response.json();
+            displayRestaurants();
+        } catch (error) {
+            document.getElementById('restaurantGrid').innerHTML = '<p class="no-results">데이터 로드 실패</p>';
+        }
+    }
+
+
+    //목록 출력 함수
+    function displayRestaurants() {
+        const grid = document.getElementById('restaurantGrid');
+        let filtered = restaurantData.filter(r =>
+            r.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            r.address.toLowerCase().includes(searchKeyword.toLowerCase())
+        );
+        if (filtered.length === 0) {
+            grid.innerHTML = '<div class="no-results">검색 결과가 없습니다.</div>';
+            return;
+        }
+        grid.innerHTML = filtered.map(r => `
+            <div class="restaurant-card" onclick="openDetail(${r.id})">
+                <img src="${r.thumbnail || 'https://via.placeholder.com/300x220'}" class="card-image">
+                <div class="card-content">
+                    <span class="category-badge">${r.category}</span>
+                    <h3 class="restaurant-name">${r.name}</h3>
+                    <p style="font-size: 14px; color: #666; margin-top: 5px;">📍 ${r.address}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    //상세보기모달 오픈
+    async function openDetail(id) {
+        try {
+            const response = await fetch(`/api/restaurants/${id}`);
+            if (!response.ok) throw new Error();
+            currentData = await response.json();
+
+            const viewContent = document.getElementById('viewContent');
+            viewContent.innerHTML = `
+                <img src="${currentData.thumbnail || 'https://via.placeholder.com/600x300'}" class="modal-header-img">
+                <div class="modal-body">
+                    <span class="category-badge">${currentData.category}</span>
+                    <h2 style="font-size: 26px; margin-bottom: 10px;">${currentData.name}</h2>
+                    <p style="color: #666; margin-bottom: 5px;">📍 ${currentData.address}</p>
+                    <p style="color: #666; margin-bottom: 15px;">📞 ${currentData.phone || '정보 없음'}</p>
+
+                    <div class="view-menu-box">
+                        <span>🔥</span>
+                        <strong>대표 메뉴:</strong>
+                        <span>${currentData.popularMenu || '준비 중'}</span>
+                    </div>
+
+                    <div style="margin-top: 30px; display: flex; gap: 10px;">
+                        <button type="button"
+                                style="flex: 1; padding: 14px; border: 1px solid #ddd; border-radius: 8px; background: #f8f8f8; color: #666; font-weight: 600; cursor: pointer;"
+                                onclick="closeModal()">
+                            닫기
+                        </button>
+                        <button type="button"
+                                style="flex: 1; padding: 14px; border: none; border-radius: 8px; background: #ff6b35; color: white; font-weight: 600; cursor: pointer;"
+                                onclick="event.stopPropagation(); toggleEditMode(true)">
+                            수정하기
+                        </button>
+                    </div>
+                </div>
+            `;
+            toggleEditMode(false);
+            document.getElementById('detailModal').style.display = 'block';
+        } catch (e) {
+            alert("데이터를 가져오지 못했습니다.");
+        }
+    }
+
+    //스정모드전환 후 기존 데이터 세팅
+    function toggleEditMode(isEdit) {
+        const viewMode = document.getElementById('viewMode');
+        const editMode = document.getElementById('editMode');
+        const preview = document.getElementById('thumbnailPreview');
+
+        if (isEdit) {
+            viewMode.style.display = 'none';
+            editMode.style.display = 'block';
+
+            if (currentData) {
+                document.getElementById('editId').value = currentData.id;
+                document.getElementById('editName').value = currentData.name;
+                document.getElementById('editAddress').value = currentData.address;
+                document.getElementById('editCategory').value = currentData.category;
+                document.getElementById('editPhone').value = currentData.phone || '';
+                document.getElementById('editMenu').value = currentData.popularMenu || '';
+
+                const thumbnailElement = document.getElementById('editThumbnail');
+                if (thumbnailElement) {
+                    thumbnailElement.value = currentData.thumbnail || '';
+                }
+
+                if (currentData.thumbnail) {
+                    preview.src = currentData.thumbnail;
+                    preview.style.display = 'block';
+                } else {
+                    preview.style.display = 'none';
+                    preview.src = '';
+                }
+
+                const lat = currentData.latitude || '';
+                const lng = currentData.longitude || '';
+
+                document.getElementById('editLat').value = lat;
+                document.getElementById('editLng').value = lng;
+
+                setTimeout(() => {
+                    initMap(lat, lng);
+                }, 300);
+            }
+        } else {
+            viewMode.style.display = 'block';
+            editMode.style.display = 'none';
+        }
+    }
+
+    document.getElementById('editPhoto').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const preview = document.getElementById('thumbnailPreview');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                preview.src = event.target.result; // 파일을 읽어서 이미지 소스로 넣음
+                preview.style.display = 'block';   // 숨겨져 있던 이미지를 보이게 함
+            };
+            reader.readAsDataURL(file); // 파일 읽기 시작
+        } else {
+            // 파일을 취소한 경우 기존 데이터가 없으면 다시 숨김
+            if (!document.getElementById('editThumbnail').value) {
+                preview.style.display = 'none';
+            }
+        }
+    });
+
+    async function uploadToFirebase() {
+        const fileInput = document.getElementById("editPhoto");
+        const file = fileInput.files[0];
+
+
+        // 사진을 새로 선택한 경우에만 업로드 진행
+        if (!file) return;
+
+        const fileName = `restaurants/${Date.now()}_${file.name}`;
+        const storageReference = window.storageRef(window.appStorage, fileName);
+
+        try {
+            await window.uploadBytes(storageReference, file);
+            const url = await window.getDownloadURL(storageReference);
+            // 업로드 완료된 URL을 hidden input에 저장
+            document.getElementById("editThumbnail").value = url;
+        } catch (error) {
+            console.error("Firebase Upload Error:", error);
+            throw error;
+        }
+    }
+
+
+    // ── [수정 파트 확실하게 교정] ──
+    document.getElementById('editForm').onsubmit = async (e) => {
+        e.preventDefault();
+
+        // 1. 변수 미지정 에러를 방지하기 위해 currentData에서 안전하게 ID 추출
+        if (!currentData || !currentData.id) {
+            alert("수정할 맛집 정보가 올바르지 않습니다.");
+            return;
+        }
+        const targetId = currentData.id;
+        const submitBtn = document.getElementById('submitBtn'); // 버튼 상태 제어를 위해 추가
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "수정 중...";
+
+
+        try {
+            const fileInput = document.getElementById("editPhoto");
+            const file = fileInput.files[0];
+            let thumbnailUrl = document.getElementById("editThumbnail").value; // 기존 URL 유지
+
+            if (file) {
+                const fileName = `restaurants/${Date.now()}_${file.name}`;
+                const storageReference = window.storageRef(window.appStorage, fileName);
+
+                // 팀장님 방식의 업로드 로직
+                await window.uploadBytes(storageReference, file);
+                thumbnailUrl = await window.getDownloadURL(storageReference);
+            }
+
+            const updateData = {
+            name: document.getElementById('editName').value,
+            address: document.getElementById('editAddress').value,
+            category: document.getElementById('editCategory').value,
+            phone: document.getElementById('editPhone').value,
+            popularMenu: document.getElementById('editMenu').value,
+            latitude: parseFloat(document.getElementById('editLat').value) || 0,
+            longitude: parseFloat(document.getElementById('editLng').value) || 0,
+            thumbnail: thumbnailUrl // 새로 따온 URL 혹은 기존 URL
+            };
+
+            const response = await fetch(`/api/restaurants/${targetId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 시큐리티인증용 세션 쿠키 전송
+                body: JSON.stringify(updateData)
+            });
+            if(response.ok) {
+
+                alert("성공적으로 수정되었습니다!");
+                closeModal();
+                loadDataFromServer(); // 목록 새로고침
+            } else {
+                alert(`수정 실패 (오류 코드: ${response.status})`);
+            }
+        } catch (error) {
+            console.error("수정 통신 중 에러 발생:", error);
+            alert("서버 연결 중 오류가 발생했습니다.");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "수정하기";
+        }
+    };
+
+    // ── [삭제 파트]: 컨트롤러 매핑 주소(/api/restaurants/{id}) 및 크레덴셜 반영 ──
+    window.deleteRestaurant = async function() {
+        if (!currentData || !currentData.id) {
+            alert("삭제할 데이터가 올바르지 않습니다.");
+            return;
+        }
+        if (!confirm("정말 삭제하시겠습니까?")) return;
+
+        try {
+            // URL을 컨트롤러 패턴인 /api/restaurants/{id} 에 정확히 맞춥니다.
+            const response = await fetch(`/api/restaurants/${currentData.id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include' // 시큐리티 인증용 세션 쿠키 동반 전송
+            });
+
+            if (response.ok) {
+                alert("성공적으로 삭제되었습니다."); // 컨트롤러 ResponseEntity 응답과 알림 조화
+                closeModal();
+                loadDataFromServer();
+            } else {
+                alert(`삭제 실패 (오류 코드: ${response.status})`);
+            }
+        } catch (error) {
+            console.error("삭제 오류:", error);
+        }
+    };
+
+    function closeModal() {
+        document.getElementById('detailModal').style.display = 'none';
+    }
+
+    window.addEventListener('DOMContentLoaded', loadDataFromServer);
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentCategory = this.dataset.category;
+            loadDataFromServer();
+        });
+    });
+
+    document.getElementById('searchInput').addEventListener('input', e => {
+        searchKeyword = e.target.value;
+        displayRestaurants();
+    });
+
+    window.onclick = e => { if (e.target == document.getElementById('detailModal')) closeModal(); };
+
+    let map;
+    let marker;
+
+    function initMap(lat, lng) {
+        const mapContainer = document.getElementById('map');
+        const nLat = parseFloat(lat);
+        const nLng = parseFloat(lng);
+
+        if (isNaN(nLat) || isNaN(nLng)) {
+            console.error("유효하지 않은 좌표입니다:", lat, lng);
+            return;
+        }
+
+        const centerPos = new kakao.maps.LatLng(nLat, nLng);
+        const mapOption = {
+            center: centerPos,
+            level: 3
+        };
+
+        if (!map) {
+            map = new kakao.maps.Map(mapContainer, mapOption);
+            marker = new kakao.maps.Marker({ position: centerPos });
+            marker.setMap(map);
+        } else {
+            map.setCenter(centerPos);
+            marker.setPosition(centerPos);
+        }
+
+        kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+            const latlng = mouseEvent.latLng;
+            marker.setPosition(latlng);
+            marker.setMap(map);
+
+            document.getElementById('editLat').value = latlng.getLat();
+            document.getElementById('editLng').value = latlng.getLng();
+        });
+
+        setTimeout(() => {
+            if(map) {
+                map.relayout();
+                map.setCenter(centerPos);
+            }
+        }, 200);
+    }
+</script>
+</body>
+</html>
